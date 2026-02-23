@@ -1,0 +1,169 @@
+/* ==========================================================================
+   Responsive Data Table
+   ========================================================================== */
+
+.rdt {
+    display: table;
+    border-collapse: collapse;
+    overflow-x: auto;
+}
+
+.rdt-centered {
+    margin:0 auto;
+}
+
+.rdt-headergroup {
+    display: table-header-group;
+}
+
+.rdt-header {
+    display: table-cell;
+    padding:8px 10px;
+    border-bottom: 1px solid #e5e5e5;
+    font-weight: 600;
+    color:#333;
+}
+
+.rdt-header.sorted {
+}
+
+.rdt-rowgroup {
+    display: table-row-group;
+    clear: both;
+}
+
+.rdt-row {
+    display: table-row;
+    background-color:#fff;
+}
+
+.is-dektop .rdt-row:hover,
+.is-dektop .rdt-striped .rdt-row:hover {
+    background-color: #f0f0f0;
+    box-shadow: -1px 0 #0094EF;
+}
+
+.is-dektop .rdt-row-no-hover:hover,
+.is-dektop .rdt-striped .rdt-row-no-hover:hover {
+    background-color: transparent;
+    box-shadow: none;
+}
+
+.rdt-striped .rdt-row:nth-child(even) {
+    background-color: #f5f5f5;
+}
+
+.rdt-cell {
+    display: table-cell;
+    padding: 8px 10px;
+    border-bottom-style: solid;
+    border-bottom-width: 1px;
+    border-bottom-color: #e5e5e5;
+    white-space: nowrap;
+    cursor:default;
+    vertical-align: middle;
+    position:relative;
+}
+
+.is-desktop .rdt-cell-right-align {
+    text-align:right;
+}
+
+.rdt-cell a:hover {
+    text-decoration:none;
+}
+
+.rdt-cell-image {
+    padding:0px 4px;
+}
+
+.rdt-toolbar {
+    display: table-caption;
+    margin-bottom: 16px;
+    vertical-align: bottom;
+}
+
+.rdt-quicksearch,
+.textbox.rdt-quicksearch {
+    padding-right: 23px;
+    background-image: url('../../../Images/fa/search_14_2_333333.png');
+    background-repeat: no-repeat;
+    background-position: right 3px center;
+    min-width: 260px;
+}
+
+.rdt-row-action {
+    vertical-align: bottom;
+}
+
+.is-desktop .rdt-hide-in-table-view {
+    display: none;
+}
+
+
+
+/* ==========================================================================
+   Mobile Styles
+   ========================================================================== */
+
+.is-mobile .rdt,
+.is-mobile .rdt-toolbar,
+.is-mobile .rdt-rowgroup,
+.is-mobile .rdt-row,
+.is-mobile .rdt-cell {
+    display: block;
+}
+
+.is-mobile .rdt-toolbar {
+    margin: 0;
+    /*padding: 16px 12px;*/
+    padding: 16px 0px 16px;
+}
+
+.is-mobile .rdt-headergroup {
+    display: none;
+}
+
+.is-mobile .rdt-row {
+    margin:0;
+    border:0;
+    border-top:1px solid #ddd;
+    border-radius: 0px;
+    padding:16px 8px;
+}
+
+.is-mobile .rdt-row:last-child {
+    border-bottom:1px solid #ddd;
+}
+
+.is-mobile .rdt-striped .rdt-row:nth-child(even) {
+    background-color: #fff;
+}
+
+.is-mobile .rdt-cell {
+    margin: 0;
+    border: 0;
+    padding: 3px 10px;
+    white-space:normal;
+}
+
+.is-mobile .rdt-cell:first-child {
+    font-weight: 600;
+    font-size: 16px;
+    padding-bottom:8px;
+}
+
+
+.is-mobile .rdt-cell:before {
+    display: inline-block;
+}
+
+.is-mobile .rdt-cell[data-label]:not(:first-child):before {
+    font-weight: 600;
+    padding-right: 4px;
+    content: " "attr(data-label)":";
+}
+
+.is-mobile .rdt-hide-in-item-view {
+    display: none;
+}

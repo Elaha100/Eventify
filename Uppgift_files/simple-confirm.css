@@ -1,0 +1,363 @@
+/* ==========================================================================
+   Simple Confirm
+   ========================================================================== */
+
+.simple-confirm {
+    visibility: hidden; /* Avoid flicker when added to DOM */
+}
+
+.simple-confirm.OPEN {
+    visibility: visible;
+}
+
+
+
+/* ==========================================================================
+   Overlay
+   ========================================================================== */
+
+.simple-confirm__overlay {
+    content: ' ';
+    display: block;
+    position: fixed;
+    /* Extra size to account for changes in viewport dimension (scrolling on iPad) */
+    top: -100px;
+    right: -100px;
+    bottom: -100px;
+    left: -100px;
+    z-index: 4999;
+    opacity: 0;
+    transition: opacity .24s;
+}
+
+.is-mobile .simple-confirm__overlay {
+    cursor: pointer;
+    transition: opacity .16s;
+}
+
+.simple-confirm.OPEN .simple-confirm__overlay {
+    opacity: .7;
+}
+
+.simple-confirm.DIMMED .simple-confirm__overlay {
+    background-color: #000;
+}
+
+
+
+/* ==========================================================================
+   Content
+   ========================================================================== */
+
+.simple-confirm__content {
+    position: absolute;
+    background-color: #f7f7f7;
+    color: #000;
+    z-index: 5000;
+    top: 0;
+    left: 0;
+    max-width: 360px;
+    min-width: 300px;
+    border-radius: 10px;
+    box-shadow: 1px 3px 5px -1px rgba(0,0,0,.2), 1px 6px 10px 0 rgba(0,0,0,.14), 0 1px 18px 0 rgba(0,0,0,.12);
+    box-sizing: border-box;
+    padding: 20px 20px 18px;
+    will-change: transform, opacity;
+}
+
+.simple-confirm.DIMMED .simple-confirm__content {
+    box-shadow: 6px 12px 32px rgba(0,0,0,0.16);
+}
+
+.is-mobile .simple-confirm__content {
+    position: fixed;
+    top: 10%;
+    left: 24px;
+    right: 24px;
+    margin: 10px auto;
+    max-width: 420px;
+    min-width: 0;
+    box-shadow: none;
+}
+
+
+
+/* ==========================================================================
+   Content Open Animation
+   ========================================================================== */
+
+.is-desktop .simple-confirm.OPEN .simple-confirm__content {
+    animation-duration: .12s;
+    animation-name: simple-confirm-open-content-desktop;
+}
+
+@keyframes simple-confirm-open-content-desktop {
+    0% {
+        opacity: 0;
+        transform: scale(.9);
+    }
+}
+
+
+
+/* ==========================================================================
+   DIMMED Content Open Animation
+   ========================================================================== */
+
+.is-desktop .simple-confirm.DIMMED.OPEN .simple-confirm__content {
+    animation-duration: .12s;
+    animation-name: simple-confirm-open-content-desktop-dimmed;
+}
+
+@keyframes simple-confirm-open-content-desktop-dimmed {
+    0% {
+        opacity: 0;
+        transform: scale(.9);
+    }
+}
+
+
+
+/* ==========================================================================
+   MOBILE Content Open Animation
+   ========================================================================== */
+
+.is-mobile .simple-confirm.OPEN .simple-confirm__content {
+    animation-duration: .16s;
+    animation-name: simple-confirm-open-content-mobile;
+}
+
+@keyframes simple-confirm-open-content-mobile {
+    0% {
+        opacity: 0;
+        transform: scale(.9);
+    }
+}
+
+
+
+/* ==========================================================================
+   Transform Origin
+   ========================================================================== */
+
+.simple-confirm__content {
+    transform-origin: 50% 50%;
+}
+
+.simple-confirm.TOP .simple-confirm__content {
+    transform-origin: bottom center;
+}
+
+.simple-confirm.BOTTOM .simple-confirm__content {
+    transform-origin: top center;
+}
+
+.simple-confirm.LEFT .simple-confirm__content {
+    transform-origin: center right;
+}
+
+.simple-confirm.RIGHT .simple-confirm__content {
+    transform-origin: center left;
+}
+
+
+
+/* ==========================================================================
+   Title
+   ========================================================================== */
+
+.simple-confirm__action-title {
+    padding: 0;
+    margin: 0 4px 6px;
+    text-align: left;
+    font-weight: bold;
+    font-size: 17px;
+    line-height: 1.3;
+}
+
+
+
+/* ==========================================================================
+   Action Outcome (text)
+   ========================================================================== */
+
+.simple-confirm__action-outcome {
+    padding: 0;
+    margin: 0 4px 2px;
+    line-height: 1.4;
+}
+
+
+
+/* ==========================================================================
+   Close Button
+   ========================================================================== */
+
+.simple-confirm__close-button {
+    cursor: pointer;
+    display: block;
+    position: absolute;
+    right: 8px;
+    top: 8px;
+    width: 24px;
+    height: 24px;
+    background-color: transparent;
+    color: #999;
+    border-radius: 3px;
+    border: 0;
+    margin: 0;
+    padding: 0;
+    outline: 0;
+    -moz-appearance: none;
+    -webkit-appearance: none;
+    vertical-align: baseline;
+}
+
+.simple-confirm__close-button:hover {
+    background-color: #fff;
+    color: #000;
+    box-shadow: 0 0 0 1px rgba(0, 0, 0, .2);
+}
+
+.simple-confirm__close-button svg {
+    display: block;
+    width: 24px;
+    height: 24px;
+    pointer-events: none; /* Move click target to parent button */
+}
+
+
+
+/* ==========================================================================
+   Actions (buttons)
+   ========================================================================== */
+
+.simple-confirm__actions {
+    text-align: right;
+    margin-top: 24px;
+}
+
+
+
+/* ==========================================================================
+   Arrow
+   ========================================================================== */
+
+.simple-confirm.TOP .simple-confirm__content::before,
+.simple-confirm.TOP .simple-confirm__content::after,
+.simple-confirm.RIGHT .simple-confirm__content::before,
+.simple-confirm.RIGHT .simple-confirm__content::after,
+.simple-confirm.BOTTOM .simple-confirm__content::before,
+.simple-confirm.BOTTOM .simple-confirm__content::after,
+.simple-confirm.LEFT .simple-confirm__content::before,
+.simple-confirm.LEFT .simple-confirm__content::after {
+    border: solid transparent;
+    content: " ";
+    height: 0;
+    width: 0;
+    position: absolute;
+    pointer-events: none;
+    box-sizing: border-box;
+}
+
+.simple-confirm.TOP .simple-confirm__content::before,
+.simple-confirm.RIGHT .simple-confirm__content::before,
+.simple-confirm.BOTTOM .simple-confirm__content::before,
+.simple-confirm.LEFT .simple-confirm__content::before {
+    border-width: 9px;
+}
+
+.simple-confirm.TOP .simple-confirm__content::after,
+.simple-confirm.RIGHT .simple-confirm__content::after,
+.simple-confirm.BOTTOM .simple-confirm__content::after,
+.simple-confirm.LEFT .simple-confirm__content::after {
+    border-width: 8px;
+}
+
+
+
+/* ==========================================================================
+    .TOP Arrow
+    ========================================================================== */
+
+.simple-confirm.TOP .simple-confirm__content::before,
+.simple-confirm.TOP .simple-confirm__content::after {
+    top: 100%;
+    left: 50%;
+}
+
+.simple-confirm.TOP .simple-confirm__content::before {
+    border-top-color: #ccc;
+    margin-left: -9px;
+}
+
+.simple-confirm.TOP .simple-confirm__content::after {
+    border-top-color: #f7f7f7;
+    margin-left: -8px;
+}
+
+
+
+/* ==========================================================================
+    .RIGHT Arrow
+    ========================================================================== */
+
+.simple-confirm.RIGHT .simple-confirm__content::before,
+.simple-confirm.RIGHT .simple-confirm__content::after {
+    right: 100%;
+    top: 50%;
+}
+
+.simple-confirm.RIGHT .simple-confirm__content::before {
+    border-right-color: #ccc;
+    margin-top: -9px;
+}
+
+.simple-confirm.RIGHT .simple-confirm__content::after {
+    border-right-color: #f7f7f7;
+    margin-top: -8px;
+}
+
+
+
+/* ==========================================================================
+   .BOTTOM Arrow
+   ========================================================================== */
+
+.simple-confirm.BOTTOM .simple-confirm__content::before,
+.simple-confirm.BOTTOM .simple-confirm__content::after {
+    left: 50%;
+    bottom: 100%;
+}
+
+.simple-confirm.BOTTOM .simple-confirm__content::before {
+    border-bottom-color: #ccc;
+    margin-left: -9px;
+}
+
+.simple-confirm.BOTTOM .simple-confirm__content::after {
+    border-bottom-color: #f7f7f7;
+    margin-left: -8px;
+}
+
+
+
+/* ==========================================================================
+    .LEFT Arrow
+    ========================================================================== */
+
+.simple-confirm.LEFT .simple-confirm__content::before,
+.simple-confirm.LEFT .simple-confirm__content::after {
+    top: 50%;
+    left: 100%;
+}
+
+.simple-confirm.LEFT .simple-confirm__content::before {
+    border-left-color: #ccc;
+    margin-top: -9px;
+}
+
+.simple-confirm.LEFT .simple-confirm__content::after {
+    border-left-color: #f7f7f7;
+    margin-top: -8px;
+}

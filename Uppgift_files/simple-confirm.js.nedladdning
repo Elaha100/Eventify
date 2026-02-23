@@ -1,0 +1,386 @@
+﻿'use strict';
+
+(function () {
+
+
+    var cmp = LearnPoint.createComponent('simple-confirm');
+
+    // ------------------------------------------------------------------------
+
+    var ClassName = {
+        SIMPLE_CONFIRM: 'simple-confirm',
+        OVERLAY: 'simple-confirm__overlay',
+        CONTENT: 'simple-confirm__content',
+        ACTION_TITLE: 'simple-confirm__action-title',
+        ACTION_OUTCOME: 'simple-confirm__action-outcome',
+        ACTIONS: 'simple-confirm__actions',
+        OPEN: 'OPEN',
+        DIMMED: 'DIMMED',
+        POSITION_TOP: 'TOP',
+        POSITION_RIGHT: 'RIGHT',
+        POSITION_BOTTOM: 'BOTTOM',
+        POSITION_LEFT: 'LEFT',
+        BUTTON: 'button',
+        PRIMARY_ACTION_BUTTON: 'PRIMARY',
+        BUTTON_SMALL: 'SMALL',
+        BUTTON_DANGER: 'DANGER',
+        BUTTON_CLOSE: 'simple-confirm__close-button'
+    }
+
+    // ------------------------------------------------------------------------
+
+    var Attribute = {
+        SIMPLE_CONFIRM: 'data-simple-confirm',
+        ACTION_OUTCOME: 'data-simple-confirm-action-outcome',
+        CONFIRMED: 'data-simple-confirm-confirmed',
+        POSITION: 'data-simple-confirm-position',
+        CONFIRM: 'data-simple-confirm-action',
+        CONFIRM_TYPE: 'data-simple-confirm-type',
+        CANCEL: 'data-simple-confirm-cancel'
+    }
+
+    // ------------------------------------------------------------------------
+
+    var Selector = {
+        SIMPLE_CONFIRM: '[data-simple-confirm]',
+        CONFIRMED: '[data-simple-confirm-confirmed=true]',
+        CONFIRM: '[data-simple-confirm-action=true]',
+        CANCEL: '[data-simple-confirm-close=true]',
+        OVERLAY: '[data-simple-confirm-overlay=true]',
+        CONTENT: '.simple-confirm__content'
+    }
+
+    // ------------------------------------------------------------------------
+
+    var ConfirmType = {
+        DEFAULT: "default",
+        DANGER: "danger",
+        INFORMATIONAL: "informational"
+    }
+
+    // ------------------------------------------------------------------------
+
+    document.addEventListener('click', function (event) {
+
+        // Escape if clicked inside simple-confirm content, except if
+        // clicked on cancel button or confirm button
+        if (event.target.closest(Selector.CONTENT)) {
+            if (event.target.matches(Selector.CONFIRM) || event.target.matches(Selector.CANCEL)) {
+                // No action
+            } else {
+                return; // Escape
+            }
+        }
+
+        // Remove any open simple confirms
+        RemoveConfirmElements();
+
+        // Remove Esc key listener
+        RemoveEscKeyListener();
+
+        // Escape if not on a simple confirm
+        var target = event.target.closest(Selector.SIMPLE_CONFIRM);
+        if (!target) {
+            return;
+        }
+
+        // Some .NET server controls are just plain a elements with some script added onclick to mimic a form element. When these
+        // controls are disabled, the only thing that happens is that the href attributes is missing
+        if (target.disabled == true || ((target.matches('a')) && !target.hasAttribute('href'))) {
+            RemovedConfirmedState();
+            return;
+        }
+
+        var options = {
+            event: event,
+            target: target,
+            confirmText: target.getAttribute(Attribute.SIMPLE_CONFIRM)
+        };
+
+        if (target.hasAttribute(Attribute.ACTION_OUTCOME))
+            options.outcomeText = target.getAttribute(Attribute.ACTION_OUTCOME);
+
+        if (target.hasAttribute(Attribute.POSITION))
+            options.position = target.getAttribute(Attribute.POSITION);
+
+        if (target.hasAttribute(Attribute.CONFIRM))
+            options.okButtonText = target.getAttribute(Attribute.CONFIRM);
+
+        if (target.hasAttribute(Attribute.CANCEL))
+            options.cancelButtonText = target.getAttribute(Attribute.CANCEL);
+
+        if (target.hasAttribute(Attribute.CONFIRM_TYPE))
+            options.type = target.getAttribute(Attribute.CONFIRM_TYPE);
+
+
+        Show(options);
+
+    });
+
+    // ------------------------------------------------------------------------
+
+    function Show(opts) {
+
+        var defaults = {
+            event: null,
+            target: null,
+            confirmText: null,
+            outcomeText: null,
+            okButtonText: 'OK',
+            cancelButtonText: 'Avbryt',
+            type: ConfirmType.DEFAULT,
+            position: null,
+        }
+
+        if (opts.type) {
+            opts.type = ensureValidConfirmType(opts.type);
+        }
+
+        var options = Object.assign(defaults, opts);
+
+        if (options.target.hasAttribute(Attribute.CONFIRMED)) {
+            RemovedConfirmedState();
+            return;
+        }
+
+        options.event.preventDefault();
+
+        // Create simple confim element
+        var simpleConfirm = CreateSimpleConfirmElement(options);
+
+        // Insert into DOM
+        window.requestAnimationFrame(function () {
+
+            document.body.appendChild(simpleConfirm);
+            SetPosition(simpleConfirm, options);
+
+            // OPEN
+            window.requestAnimationFrame(function () {
+                simpleConfirm.classList.add('OPEN');
+                simpleConfirm.querySelector(Selector.CONTENT).focus();
+            });
+
+            // Disable site scroll on mobile
+            if (isMobile) {
+                LearnPoint.SiteScrolling.Disable();
+            }
+
+        });
+
+        console.log('Opened simple confirm');
+
+        // Add Esc key listener
+        AddEscKeyListener();
+
+    }
+    cmp['Show'] = Show;
+
+    // ------------------------------------------------------------------------
+
+    function ensureValidConfirmType(typeVal) {
+        switch (typeVal) {
+            case ConfirmType.DANGER:
+                return ConfirmType.DANGER;
+                break;
+            case ConfirmType.INFORMATIONAL:
+                return ConfirmType.INFORMATIONAL;
+                break;
+            default:
+                return ConfirmType.DEFAULT;
+                break;
+        }
+    }
+
+    // ------------------------------------------------------------------------
+
+    function EscKeyHandler(event) {
+        if (event.key === 'Escape' || event.key === 'Esc') {
+            RemoveConfirmElements();
+            RemovedConfirmedState();
+            RemoveEscKeyListener();
+        }
+    }
+
+    // ------------------------------------------------------------------------
+
+    function AddEscKeyListener() {
+        document.addEventListener('keydown', EscKeyHandler);
+    }
+
+    // ------------------------------------------------------------------------
+
+    function RemoveEscKeyListener() {
+        document.removeEventListener('keydown', EscKeyHandler);
+    }
+
+    // ------------------------------------------------------------------------
+
+    function SetPosition(simpleConfirm, options) {
+
+        if (isMobile) {
+
+            // Position handled by css
+            simpleConfirm.classList.add(ClassName.DIMMED);
+
+        } else {
+
+            var togglerBox = options.target.getBoundingClientRect();
+            var simpleConfirmContent = simpleConfirm.querySelector(Selector.CONTENT);
+            var contentBox = simpleConfirmContent.getBoundingClientRect();
+
+            if (!options.position) {
+
+                simpleConfirm.classList.add(ClassName.DIMMED);
+                simpleConfirmContent.style.position = 'fixed';
+                simpleConfirmContent.style.top = '20%';
+                simpleConfirmContent.style.left = '50%';
+                simpleConfirmContent.style.marginLeft = '-' + contentBox.width / 2 + 'px';
+
+            } else if (options.position == "top") {
+
+                simpleConfirmContent.style.top = (togglerBox.top + window.pageYOffset) - (contentBox.height) - 15 + "px";
+                simpleConfirmContent.style.left = (togglerBox.left + window.pageXOffset) + (togglerBox.width / 2 - contentBox.width / 2) + "px";
+                simpleConfirm.classList.add(ClassName.POSITION_TOP);
+
+            } else if (options.position == "right") {
+
+                simpleConfirmContent.style.top = (togglerBox.top + window.pageYOffset) + (togglerBox.height / 2) - (contentBox.height / 2) + "px";
+                simpleConfirmContent.style.left = (togglerBox.left + window.pageXOffset) + togglerBox.width + 10 + "px";
+                simpleConfirm.classList.add(ClassName.POSITION_RIGHT);
+
+            } else if (options.position == "bottom") {
+
+                simpleConfirmContent.style.top = (togglerBox.top + window.pageYOffset) + (togglerBox.height) + 15 + "px";
+                simpleConfirmContent.style.left = (togglerBox.left + window.pageXOffset) + (togglerBox.width / 2 - contentBox.width / 2) + "px";
+                simpleConfirm.classList.add(ClassName.POSITION_BOTTOM);
+            }
+
+            else if (options.position == "left") {
+
+                simpleConfirmContent.style.top = (togglerBox.top + window.pageYOffset) + (togglerBox.height / 2) - (contentBox.height / 2) + 'px';
+                simpleConfirmContent.style.left = (togglerBox.left + window.pageXOffset) - (contentBox.width + 10) + 'px';
+                simpleConfirm.classList.add(ClassName.POSITION_LEFT);
+            }
+        }
+    }
+
+    // ------------------------------------------------------------------------
+
+    function CreateSimpleConfirmElement(options) {
+
+        var simpleConfirm = document.createElement('div');
+        simpleConfirm.className = ClassName.SIMPLE_CONFIRM;
+
+        var overlay = document.createElement('div');
+        overlay.className = ClassName.OVERLAY;
+        overlay.setAttribute('data-simple-confirm-overlay', 'true');
+        simpleConfirm.appendChild(overlay);
+
+        var content = document.createElement('div');
+        content.className = ClassName.CONTENT;
+        content.tabIndex = "-1";
+        simpleConfirm.appendChild(content);
+
+        var title = document.createElement('div');
+        title.className = ClassName.ACTION_TITLE;
+        title.innerText = options.confirmText;
+        content.appendChild(title);
+
+        if (options.outcomeText) {
+            var outcomeText = document.createElement('div');
+            outcomeText.className = ClassName.ACTION_OUTCOME;
+            /*outcomeText.innerText = options.outcomeText*/
+            outcomeText.innerHTML = options.outcomeText
+            content.appendChild(outcomeText);
+        }
+
+        // Close button only if type is INFORMATIONAL
+        if (options.type === ConfirmType.INFORMATIONAL) {
+            var closeButton = document.createElement('button');
+            closeButton.className = ClassName.BUTTON_CLOSE;
+            closeButton.setAttribute('data-simple-confirm-close', 'true');
+            closeButton.setAttribute('title', 'Stäng');
+            closeButton.type = 'button';
+            content.appendChild(closeButton);
+
+            // close icon
+            closeButton.innerHTML = `<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" viewBox="0 0 16 16">
+                                         <path d="M4.646 4.646a.5.5 0 0 1 .708 0L8 7.293l2.646-2.647a.5.5 0 0 1 .708.708L8.707 8l2.647 2.646a.5.5 0 0 1-.708.708L8 8.707l-2.646 2.647a.5.5 0 0 1-.708-.708L7.293 8 4.646 5.354a.5.5 0 0 1 0-.708z"/>
+                                     </svg>`;
+        }
+
+        // Cancel and OK buttons only if type is DEFAULT or DANGER
+        if (options.type === ConfirmType.DEFAULT || options.type === ConfirmType.DANGER) {
+
+            var buttonsContainer = document.createElement('div');
+            buttonsContainer.className = ClassName.ACTIONS;
+            content.appendChild(buttonsContainer)
+
+            var cancelButton = document.createElement('input');
+            cancelButton.className = ClassName.BUTTON;
+            cancelButton.setAttribute('data-simple-confirm-close', 'true');
+            cancelButton.type = 'button';
+            cancelButton.style.marginRight = "6px";
+            cancelButton.value = options.cancelButtonText;
+            buttonsContainer.appendChild(cancelButton);
+
+
+            var okButton = document.createElement('input');
+            okButton.className = ClassName.BUTTON;
+            okButton.classList.add(ClassName.PRIMARY_ACTION_BUTTON);
+            if (options.type === ConfirmType.DANGER) {
+                okButton.classList.add(ClassName.BUTTON_DANGER);
+            }
+            okButton.setAttribute('data-simple-confirm-action', 'true');
+            okButton.type = 'button';
+            okButton.value = options.okButtonText;
+            buttonsContainer.appendChild(okButton);
+
+            okButton.addEventListener('click', function (event) {
+                if (!document.contains(options.target)) {
+                    console.log('The Simple Confirm button no longer in DOM. Perhaps replaced during AJAX-panel update.');
+                    LearnPoint.FlashMessage.Show('Försök igen!');
+                    return;
+                }
+
+                options.target.setAttribute('data-simple-confirm-confirmed', 'true');
+                options.target.focus();
+                options.target.click();
+
+            }, false);
+        }
+
+        return simpleConfirm;
+    }
+
+    // ------------------------------------------------------------------------
+
+    function RemoveConfirmElements() {
+
+        var simpleConfirmElementWasClosed = false;
+
+        var simpleConfirmElements = document.querySelectorAll('.' + ClassName.SIMPLE_CONFIRM);
+        for (var i = 0; i < simpleConfirmElements.length; i++) {
+            var simpleConfirmElement = simpleConfirmElements[i];
+            simpleConfirmElement.parentNode.removeChild(simpleConfirmElement);
+            simpleConfirmElementWasClosed = true;
+        }
+
+        if (simpleConfirmElementWasClosed && LearnPoint.SiteScrolling.IsDisabled()) {
+            LearnPoint.SiteScrolling.Enable();
+        }
+
+    }
+
+    // ------------------------------------------------------------------------
+
+    function RemovedConfirmedState() {
+
+        var simpleConfirmConfirmedElements = document.querySelectorAll(Selector.CONFIRMED);
+        for (var i = 0; i < simpleConfirmConfirmedElements.length; i++) {
+            var simpleConfirmConfirmedElement = simpleConfirmConfirmedElements[i];
+            simpleConfirmConfirmedElement.removeAttribute(Attribute.CONFIRMED);
+        }
+    }
+
+})();

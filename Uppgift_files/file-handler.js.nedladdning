@@ -1,0 +1,852 @@
+﻿'use strict';
+
+(function () {
+
+    const COMPONENT_NAME = 'file-handler';
+
+    const cmp = LearnPoint.createComponent(COMPONENT_NAME);
+
+    const ElementName = {
+        PROGRESS_BAR: 'progress-bar',
+        PROGRESS_BAR_FILE_ICON: 'progress-bar-file-icon',
+        PROGRESS_BAR_NAME_AND_MEASURE_CONTAINER: 'progress-bar-name-and-measure-container',
+        PROGRESS_BAR_NAME: 'progress-bar-name',
+        PROGRESS_BAR_MEASURE: 'progress-bar-measure',
+        PROGRESS_BAR_VALUE: 'progress-bar-value'
+    }
+
+    const Selector = {
+        PROGRESS_BAR: cmp.elementSelector(ElementName.PROGRESS_BAR),
+        PROGRESS_BAR_VALUE: cmp.elementSelector(ElementName.PROGRESS_BAR_VALUE)
+    }
+
+    const ClassName = {
+        PROGRESS_BAR: `${COMPONENT_NAME}__${ElementName.PROGRESS_BAR}`,
+        PROGRESS_BAR_FILE_ICON: `${COMPONENT_NAME}__${ElementName.PROGRESS_BAR_FILE_ICON}`,
+        PROGRESS_BAR_NAME_AND_MEASURE_CONTAINER: `${COMPONENT_NAME}__${ElementName.PROGRESS_BAR_NAME_AND_MEASURE_CONTAINER}`,
+        PROGRESS_BAR_NAME: `${COMPONENT_NAME}__${ElementName.PROGRESS_BAR_NAME}`,
+        PROGRESS_BAR_MEASURE: `${COMPONENT_NAME}__${ElementName.PROGRESS_BAR_MEASURE}`,
+        PROGRESS_BAR_VALUE: `${COMPONENT_NAME}__${ElementName.PROGRESS_BAR_VALUE}`,
+        PROGRESS_BAR_DONE: 'DONE',
+        PROGRESS_BAR_ERROR: 'ERROR'
+    }
+
+    const DataElementName = {
+        PROGRESS_BAR: `${COMPONENT_NAME}.${ElementName.PROGRESS_BAR}`,
+        PROGRESS_BAR_VALUE: `${COMPONENT_NAME}.${ElementName.PROGRESS_BAR_VALUE}`
+    }
+
+    const uploadConstraintsCache = {};
+
+    const uploadConstraintsUrlParam = { name: "UploadConstraints", value: 1 };
+
+    const ProgressRange = {
+        VALIDATE: { START: 0, FINISH: 10 },
+        INITIALIZE: { START: 11, FINISH: 25 },
+        UPLOAD: { START: 26, FINISH: 85 },
+        COMMIT: { START: 86, FINISH: 100 }
+    }
+
+    // Only use `FileHandlerError` when you can set an error
+    // message that the end user would understand.
+
+    class FileHandlerError extends Error { };
+
+
+
+
+
+    /* =====================================================================
+       Upload File
+       ===================================================================== */
+
+    async function uploadFile(file, url, progressCallback) {
+
+        return new Promise(async (resolve, reject) => {
+
+            try {
+
+                const constraints = await getUploadConstraints(url);
+
+                if (!isValid(file, constraints)) {
+                    const validationErrors = getValidationErrors(file, constraints);
+                    const error = validationErrors[0];
+                    reject(error); // No need to report
+                    return;
+                }
+                progressCallback(ProgressRange.VALIDATE.FINISH, file);
+
+
+                const initUploadResult = await initUpload(file, url);
+                progressCallback(ProgressRange.INITIALIZE.FINISH, file);
+
+                const uploadResult = await performUpload(file, initUploadResult.url, progressCallback);
+
+                const result = await commitlUpload(file, url, initUploadResult, uploadResult);
+                progressCallback(ProgressRange.COMMIT.FINISH, file);
+
+                resolve(result);
+                return;
+
+            } catch (error) {
+
+                if (navigator.onLine === false) {
+
+                    // Avoid error reporting when browser is offline
+
+                    const connectionError = new FileHandlerError('Ingen internetanslutning');
+                    reject(connectionError);
+                    return;
+                }
+
+                await reportFileHandlerError(error, url, file);
+                reject(error);
+                return;
+            }
+        });
+    }
+    cmp['uploadFile'] = uploadFile;
+
+
+
+    /* =====================================================================
+       Upload Helpers
+       ===================================================================== */
+
+    async function initUpload(file, url) {
+
+        // Construct Form Data
+
+        const formData = new FormData();
+
+        formData.append('Content-Type', file.type);
+        formData.append('FileName', file.name);
+        formData.append('Size', file.size);
+
+        const dimensions = await getMediaFileDimensions(file);
+        if (dimensions) {
+            formData.append('width', dimensions.width);
+            formData.append('height', dimensions.height);
+        }
+
+
+        // Fetch Response
+
+        const response = await fetch(url, {
+            method: 'POST',
+            body: formData
+        });
+
+        const responseBodyText = await response.text();
+
+
+        // Check Status
+
+        if (!response.ok) {
+            let error;
+
+            if (response.status === 403) {
+                error = new FileHandlerError('Du har inte behörighet att ladda upp filen');
+            } else {
+                error = new Error('Could not init file upload');
+            }
+
+            reportFileHandlerError(error, url, file, formData, response.statusText, responseBodyText);
+            throw error;
+        }
+
+
+        // Return Response Object
+
+        let initUploadResponseObject = null;
+
+        try {
+
+            initUploadResponseObject = JSON.parse(responseBodyText);
+
+        } catch (error) {
+
+            const reportError = new Error("Could not perform JSON.parse on init file upload response");
+            reportFileHandlerError(reportError, url, file, formData, response.statusText, responseBodyText);
+            throw reportError;
+        }
+
+        return initUploadResponseObject;
+    }
+
+    // ------------------------------------------------------------------------
+
+    async function performUpload(file, url, progressCallback) {
+
+        return new Promise(async (resolve, reject) => {
+
+            const xhr = new XMLHttpRequest();
+
+
+            // Load Handler
+
+            xhr.addEventListener('load', async function (event) {
+
+                if (xhr.status == 201) {
+
+                    const headers = extractHeadersFromXHR(xhr);
+                    resolve(headers);
+                    return;
+
+                } else {
+
+                    const error = new Error('Could not perform file upload - Status Not OK');
+                    reportFileHandlerError(error, url, file, null, xhr.statusText, xhr.responseText);
+                    reject(error);
+                    return;
+                }
+            });
+
+
+            // Progress Handler
+
+            xhr.upload.addEventListener('progress', function (event) {
+                const progressRatio = event.loaded / event.total;
+                const progress = ProgressRange.UPLOAD.START + progressRatio * (ProgressRange.UPLOAD.FINISH - ProgressRange.UPLOAD.START);
+
+                progressCallback(progress, file);
+            });
+
+
+            // Error Handler
+
+            xhr.addEventListener('error', function (event) {
+                const error = new Error('Could not perform file upload - Error');
+                reportFileHandlerError(error, url, file, null, xhr.statusText, xhr.responseText);
+                reject(error);
+                return;
+            });
+
+
+            // Timeout Handler
+
+            xhr.addEventListener('timeout', function (event) {
+                const reportError = new Error('Could not perform file upload - Timeout');
+                reportFileHandlerError(reportError, url, file, null, xhr.statusText, xhr.responseText);
+
+                const userError = new FileHandlerError('Uppladdningen tog för lång tid')
+                reject(userError);
+                return;
+            });
+
+
+            // Abort Handler
+
+            xhr.addEventListener('abort', function (event) {
+                const error = new Error('Could not perform file upload - Abort');
+                reportFileHandlerError(error, url, file, null, xhr.statusText, xhr.responseText);
+                reject(error);
+                return;
+            });
+
+
+            // Send Request
+
+            xhr.open('PUT', url);
+            xhr.setRequestHeader("x-ms-blob-type", "BlockBlob");
+            xhr.send(file);
+        });
+    }
+
+    // ------------------------------------------------------------------------
+
+    async function commitlUpload(file, url, initUploadResult, uploadResult) {
+
+        // Construct Form Data
+
+        const formData = new FormData();
+
+        for (const [key, value] of Object.entries(initUploadResult)) {
+            formData.append(key, value);
+        }
+
+        for (const [key, value] of Object.entries(uploadResult)) {
+            formData.append(key, value);
+        }
+
+        formData.append('FileName', file.name);
+        formData.append('Size', file.size);
+        formData.append('Content-Type', file.type);
+
+        const dimensions = await getMediaFileDimensions(file);
+        if (dimensions) {
+            formData.append('width', dimensions.width);
+            formData.append('height', dimensions.height);
+        }
+
+
+        // Fetch Response
+
+        const response = await fetch(url, {
+            method: 'POST',
+            body: formData
+        });
+
+        const responseBodyText = await response.text();
+
+
+        // Check Response
+
+        if (!response.ok) {
+
+            const error = new Error('Could not commit file upload');
+            reportFileHandlerError(error, url, file, formData, response.statusText, responseBodyText);
+            throw error;
+
+        }
+
+        // Return Response Object
+
+        return responseBodyText;
+    }
+
+    // ------------------------------------------------------------------------
+
+    async function getUploadConstraints(url) {
+
+        const absoluteUrl = Utils.urlRelativeToAbsolute(url);
+        const getUploadConstraintsAbsoluteUrl = Utils.urlSetParam(absoluteUrl, uploadConstraintsUrlParam.name, uploadConstraintsUrlParam.value);
+        const getUploadConstraintsUrl = Utils.urlAbsoluteToRelative(getUploadConstraintsAbsoluteUrl);
+
+        if (!uploadConstraintsCache[getUploadConstraintsUrl]) {
+
+            // Fetch Response
+
+            const response = await fetch(getUploadConstraintsUrl);
+            const responseBodyText = await response.text();
+
+
+            // Check Status
+
+            if (!response.ok) {
+
+                const error = new Error("Could not fetch file upload constraints");
+                reportFileHandlerError(error, getUploadConstraintsUrl, null, null, response.statusText, responseBodyText);
+                throw error;
+            }
+
+
+            // Extract Constraints
+
+            let constraints = null;
+
+            try {
+
+                constraints = JSON.parse(responseBodyText);
+
+            } catch (error) {
+
+                const reportError = new Error("Could not perform JSON.parse on file upload constraints response");
+                reportFileHandlerError(reportError, getUploadConstraintsUrl, null, null, response.statusText, responseBodyText);
+                throw reportError;
+            }
+
+            uploadConstraintsCache[getUploadConstraintsUrl] = constraints;
+        }
+
+        return uploadConstraintsCache[getUploadConstraintsUrl];
+    }
+    cmp['getUploadConstraints'] = getUploadConstraints;
+
+
+
+    /* =====================================================================
+       Validation
+       ===================================================================== */
+
+    function isValid(file, constraints) {
+
+        const validationErrors = getValidationErrors(file, constraints);
+
+        if (validationErrors.length) {
+            return false;
+        }
+        return true;
+    }
+    cmp['isValid'] = isValid;
+
+    // ------------------------------------------------------------------------
+
+    function getValidationErrors(file, constraints) {
+
+        const validationErrors = [];
+
+        if (file.size > constraints.maxFileSizeBytes) {
+            const message = `Filen är för stor. Max ${bytesToSize(constraints.maxFileSizeBytes)}`;
+            validationErrors.push(new FileHandlerError(message));
+            console.log(`File upload error. File size is ${file.size}. Max size is ${constraints.maxFileSizeBytes}`);
+        }
+
+        if (file.size < 1) {
+            const message = `Filen saknar innehåll`;
+            validationErrors.push(new FileHandlerError(message));
+            console.log(`File upload error. File size is ${file.size}. Min size is 1`);
+        }
+
+        if (!isValidMime(file, constraints.validContentTypes)) {
+            const message = `Filtypen stöds inte`;
+            validationErrors.push(new FileHandlerError(message));
+            console.log(`File upload error. File type is "${file.type}". Valid types are ${constraints.validContentTypes.join(', ')}`);
+        }
+
+        return validationErrors;
+    }
+    cmp['getValidationErrors'] = getValidationErrors;
+
+    // ------------------------------------------------------------------------
+
+    function isValidMime(file, validMimes) {
+
+        const mime = file.type;
+
+        // EXACT MATCH
+        // ------------------------------------------
+        // mime: "image/jpg"
+        // validMimes: ["image/jpg"]
+        // => true
+
+
+        // EMPTY TYPE MATCHES WILDCARD
+        // ------------------------------------------
+        // mime: ""
+        // validMimes: ["*/*"]
+        // => true
+
+
+        // TYPE MATCH WITH WILDCARD SUBTYPE
+        // ------------------------------------------
+        // mime: "text/html""
+        // validMimes: ["text/*"]
+        // => true
+
+
+        // WILDCARD TYPE AND WILDCARD SUBTYPE
+        // ------------------------------------------
+        // mime: "text/html""
+        // validMimes: ["*/*"]
+        // => true
+
+
+        // OPTIONAL PARAMETER IS ALWAYS IGNORED
+        // ------------------------------------------
+        // mime: "text/html;charset=utf8""
+        // validMimes: ["text/html"]
+        // => true
+
+
+        // EMPTY CHARACTERS ARE IGNORED (TRIMMED)
+        // ------------------------------------------
+        // mime: "text  / html   ;charset=utf8""
+        // validMimes: ["text/   html"]
+        // => true
+
+
+        for (const validMime of validMimes) {
+
+            if (validMime === "*/*") {
+                return true;
+            }
+
+            let [mimeType, mimeSubtype] = mime.split("/");
+            let [validMimeType, validMimeSubtype] = validMime.split("/");
+
+            mimeType = mimeType.trim();
+            validMimeType = validMimeType.trim();
+
+            // Ignore optional mime parameter (should perhaps be implemented in the future)
+            mimeSubtype = mimeSubtype.split(";")[0];
+            mimeSubtype = mimeSubtype.trim();
+            validMimeSubtype = validMimeSubtype.split(";")[0];
+            validMimeSubtype = validMimeSubtype.trim();
+
+            if (mimeType === validMimeType && "*" === validMimeSubtype) {
+                return true;
+            }
+
+            if (mimeType === validMimeType && mimeSubtype === validMimeSubtype) {
+                return true;
+            }
+        }
+
+        return false;
+    }
+
+    // ------------------------------------------------------------------------
+
+    function bytesToSize(bytes) {
+
+        // bytesToSize(1023) => "1023 Bytes"
+        // bytesToSize(1025) => "1 KB"
+        // bytesToSize(4255425) => "4 MB"
+        // bytesToSize(876545789) => "836 MB"
+        // bytesToSize(-9) => "0 Bytes"
+
+        const sizes = ['Bytes', 'KB', 'MB', 'GB', 'TB'];
+
+        if (bytes < 1) {
+            return '0 Bytes';
+        }
+
+        const i = Math.min(Math.floor(Math.log(bytes) / Math.log(1024)), sizes.length - 1);
+
+        if (i === 0) {
+            return `${bytes} ${sizes[i]}`;
+        }
+
+        return `${(bytes / (1024 ** i)).toFixed(0)} ${sizes[i]}`;
+    }
+
+
+
+    /* =====================================================================
+       Show Flash Message Error
+       ===================================================================== */
+
+    function showFlashMessageError(error) {
+        let errorMessage;
+
+        if (error instanceof FileHandlerError) {
+            errorMessage = error.message;
+        } else {
+            errorMessage = "Ett fel inträffade";
+        }
+
+        LearnPoint.FlashMessage.Show('Gick inte att ladda upp filen', errorMessage, { error: true });
+    }
+    cmp['showFlashMessageError'] = showFlashMessageError;
+
+
+
+    /* =====================================================================
+       Get Media File Dimensions
+       ===================================================================== */
+
+    async function getMediaFileDimensions(file) {
+
+        return new Promise((resolve, reject) => {
+
+            try {
+
+                // Early escape
+                if (!file.type.includes('image') && !file.type.includes('video')) {
+                    resolve(null);
+                    return;
+                }
+
+                // Extract data from file
+                const objectURL = URL.createObjectURL(file);
+
+                // Prepare media elements
+                const imageElement = document.createElement('img');
+                const videoElement = document.createElement('video');
+
+                // Load data into elements
+                if (file.type.includes('image')) {
+                    imageElement.src = objectURL;
+                } else {
+                    videoElement.src = objectURL;
+                }
+
+
+                // LOAD HANDLERS
+
+                imageElement.onload = function () {
+
+                    // The objectURL will be GC'd on navigation,
+                    // but if the user uploads several videos without
+                    // navigating, we don't want to take up too much memory.
+                    //
+                    // https://developer.mozilla.org/en-US/docs/Web/API/URL/createObjectURL_static
+
+                    URL.revokeObjectURL(objectURL);
+
+                    if (imageElement.naturalWidth && imageElement.naturalHeight) {
+                        resolve({ width: imageElement.naturalWidth, height: imageElement.naturalHeight });
+                        return;
+                    } else {
+                        resolve(null);
+                        return;
+                    }
+                };
+
+                videoElement.onloadedmetadata = function () {
+
+                    URL.revokeObjectURL(objectURL);
+
+                    if (videoElement.videoWidth && videoElement.videoHeight) {
+                        resolve({ width: videoElement.videoWidth, height: videoElement.videoHeight });
+                        return;
+                    } else {
+                        resolve(null);
+                        return;
+                    }
+                }
+
+
+                // ERROR HANDLERS
+
+                imageElement.onerror = function () {
+
+                    URL.revokeObjectURL(objectURL);
+
+                    resolve(null);
+                    return;
+                };
+
+                videoElement.onerror = function () {
+
+                    URL.revokeObjectURL(objectURL);
+
+                    resolve(null);
+                    return;
+                }
+
+            } catch (err) {
+                resolve(null);
+            }
+        });
+    }
+    cmp["getMediaFileDimensions"] = getMediaFileDimensions;
+
+
+
+    /* =====================================================================
+       Extract Headers From XHR
+       ===================================================================== */
+
+    function extractHeadersFromXHR(xhr) {
+
+        const headers = {};
+
+        const rawHeaders = xhr.getAllResponseHeaders();
+        const headersArray = rawHeaders.trim().split(/[\r\n]+/);
+
+        headersArray.forEach((line) => {
+            const parts = line.split(": ");
+            const header = parts.shift();
+            const value = parts.join(": ");
+            headers[header] = value;
+        });
+
+        return headers;
+    }
+
+
+
+    /* =====================================================================
+       Report File Handler Error
+       ===================================================================== */
+
+    function reportFileHandlerError(error, url, file, requestFormData, responseStatusText, responseBodyText) {
+
+        const MAX_RESPONSE_BODY_CHARACHTERS = 500;
+
+        const properties = {};
+
+
+        // URL
+
+        if (url) {
+            properties["fileHandlerUrl"] = Utils.urlRelativeToAbsolute(url);
+        }
+
+
+        // FILE PROPERTIES
+
+        if (file && file.name) {
+            properties["fileName"] = file.name;
+        }
+
+        if (file && file.size) {
+            properties["fileSize"] = file.size;
+        }
+
+        if (file && file.type) {
+            properties["fileType"] = file.type;
+        }
+
+
+        // REQUEST FORM DATA
+
+        if (requestFormData && requestFormData instanceof FormData) {
+            for (const [key, value] of requestFormData.entries()) {
+                properties[`requestFormData # ${key}`] = value;
+            }
+        }
+
+
+        // RESPONSE STATUS TEXT
+
+        if (responseStatusText) {
+            properties["responseStatusText"] = responseStatusText;
+        }
+
+
+        // RESPONSE BODY TEXT
+
+        if (responseBodyText) {
+            properties["responseBodyText"] = responseBodyText.slice(0, MAX_RESPONSE_BODY_CHARACHTERS);
+        }
+
+
+        // REPORT
+
+        Utils.reportError(error, properties);
+    }
+
+
+
+    /* =====================================================================
+       Upload Progress Bar
+       ===================================================================== */
+
+    function createProgressBar(file) {
+        if (hasProgressBar(file)) {
+            return null; // progressbar already exist for this file
+        }
+
+        const progressBarId = getProgressBarId(file);
+
+
+
+        const el = Utils.createElementFromHtml(`<div id="${progressBarId}" class="${ClassName.PROGRESS_BAR}" data-element="${DataElementName.PROGRESS_BAR}">
+                                                    <div class="${ClassName.PROGRESS_BAR_FILE_ICON} ${Utils.getFileExtension(file.name) || ''}"></div>
+                                                    <div class="${ClassName.PROGRESS_BAR_NAME_AND_MEASURE_CONTAINER}">
+                                                        <div class="${ClassName.PROGRESS_BAR_NAME}">${file.name}</div>
+                                                        <div class="${ClassName.PROGRESS_BAR_MEASURE}">
+                                                            <div class="${ClassName.PROGRESS_BAR_VALUE}" data-element="${DataElementName.PROGRESS_BAR_VALUE}"></div>
+                                                        </div>
+                                                    </div>
+                                                </div>`);
+
+        return el;
+    }
+    cmp["createProgressBar"] = createProgressBar;
+
+    // ------------------------------------------------------------------------
+
+    function createSimpleProgressBar(file) {
+        if (hasProgressBar(file)) {
+            return null; // progressbar already exist for this file
+        }
+
+        const progressBarId = getProgressBarId(file);
+
+
+        const el = Utils.createElementFromHtml(`<div id="${progressBarId}" class="${ClassName.PROGRESS_BAR}" data-element="${DataElementName.PROGRESS_BAR}">
+                                                    <div class="${ClassName.PROGRESS_BAR_NAME_AND_MEASURE_CONTAINER}">
+                                                        <div class="${ClassName.PROGRESS_BAR_MEASURE}">
+                                                            <div class="${ClassName.PROGRESS_BAR_VALUE}" data-element="${DataElementName.PROGRESS_BAR_VALUE}"></div>
+                                                        </div>
+                                                    </div>
+                                                </div>`);
+
+        return el;
+    }
+    cmp["createSimpleProgressBar"] = createSimpleProgressBar;
+
+
+    // ------------------------------------------------------------------------
+
+    function getProgressBarId(file) {
+        return encodeURI(`${COMPONENT_NAME}-progress-bar-id-${file.size}-${file.lastModified}-${file.name.length}`);
+    }
+
+    // ------------------------------------------------------------------------
+
+    function getProgressBar(file) {
+        const progressBarId = getProgressBarId(file);
+        return document.getElementById(progressBarId);
+    }
+
+    // ------------------------------------------------------------------------
+
+    function setProgressBarValue(file, progressValue) {
+        const progressBar = getProgressBar(file);
+        if (!progressBar) {
+            return;
+        }
+
+        const progressBarValueElement = progressBar.querySelector(Selector.PROGRESS_BAR_VALUE);
+        if (!progressBarValueElement) {
+            return;
+        }
+
+        progressBarValueElement.style.width = `${progressValue}%`;
+    }
+    cmp["setProgressBarValue"] = setProgressBarValue;
+
+    // ------------------------------------------------------------------------
+
+    function setProgressBarDone(file) {
+        const progressBar = getProgressBar(file);
+        if (!progressBar) {
+            return;
+        }
+
+        progressBar.classList.add(ClassName.PROGRESS_BAR_DONE);
+    }
+    cmp["setProgressBarDone"] = setProgressBarDone;
+
+
+    // ------------------------------------------------------------------------
+
+    function setProgressBarError(file) {
+        const progressBar = getProgressBar(file);
+        if (!progressBar) {
+            return;
+        }
+
+        const progressBarValueElement = progressBar.querySelector(Selector.PROGRESS_BAR_VALUE);
+        if (!progressBarValueElement) {
+            return;
+        }
+
+        progressBarValueElement.style.width = `100%`;
+        progressBar.classList.add(ClassName.PROGRESS_BAR_ERROR);
+    }
+    cmp["setProgressBarError"] = setProgressBarError;
+
+    // ------------------------------------------------------------------------
+
+    function hasProgressBar(file) {
+        const existingProgressBar = getProgressBar(file);
+        if (existingProgressBar) {
+            return true;
+        }
+
+        return false;
+    }
+    cmp["hasProgressBar"] = hasProgressBar;
+
+    // ------------------------------------------------------------------------
+
+    function anyProgressBarsInProgress() {
+        const selector = `${Selector.PROGRESS_BAR}:not(.${ClassName.PROGRESS_BAR_DONE})`;
+        const progressBarsInProgress = document.querySelector(selector);
+
+        if (progressBarsInProgress) {
+            return true;
+        }
+
+        return false;
+    }
+    cmp["anyProgressBarsInProgress"] = anyProgressBarsInProgress;
+
+    // ------------------------------------------------------------------------
+
+    function removeAllProgressBars() {
+        const progressBars = document.querySelectorAll(Selector.PROGRESS_BAR);
+
+        for (const progressBar of progressBars) {
+            progressBar.remove();
+        }
+    }
+    cmp["removeAllProgressBars"] = removeAllProgressBars;
+
+})();

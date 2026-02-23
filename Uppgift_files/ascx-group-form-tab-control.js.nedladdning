@@ -1,0 +1,52 @@
+﻿'use strict';
+
+(function () {
+
+    const cmp = LearnPoint.createComponent('ascx-group-form-tab-control');
+
+
+
+    /* =====================================================================
+       Channels Link on Mobile Navigates to ChannelsMenu
+       ===================================================================== */
+
+    document.addEventListener('click', function (event) {
+
+        if (!isMobile) {
+            return;
+        }
+
+        const link = event.target.closest('a');
+        if (!link) {
+            return;
+        }
+
+        if (!link.href) {
+            return;
+        }
+
+        const isInGroupNav = link.closest('.site-sub-navigation');
+        if (!isInGroupNav) {
+            return;
+        }
+
+        const href = link.href;
+
+        if (!href.includes('Group_Channel.aspx')) {
+            return;
+        }
+
+        const groupId = Utils.urlGetParam(href, 'Id');
+        const targetUrlBase = '/GroupForms/Group_ChannelsMenu.aspx';
+        const targetUrlAbsolute = Utils.urlRelativeToAbsolute(targetUrlBase);
+        const targetUrl = Utils.urlSetParam(targetUrlAbsolute, 'Id', groupId);
+
+        console.log('targetUrl', targetUrl)
+
+        event.preventDefault();
+
+        window.location.href = targetUrl;
+
+    }, true);
+
+})();

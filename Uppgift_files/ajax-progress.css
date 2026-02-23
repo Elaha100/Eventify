@@ -1,0 +1,94 @@
+﻿/* ==========================================================================
+   Ajax Progress
+   ========================================================================== */
+
+[data-component~="ajax-progress"].LOADING {
+    pointer-events: none;
+}
+
+
+
+/* ==========================================================================
+   Spinner
+   ========================================================================== */
+
+.ajax-progress__spinner {
+    background-color: #fff;
+    opacity: 0.9;
+    position: absolute;
+    z-index: 9999;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: 24px;
+    transition: opacity .3s;
+    animation: ajax-progress__spinner-reveal 1s;
+}
+
+.ajax-progress__spinner.DONE {
+    animation: none; /* kill animation if DONE happens before animation finished */
+    opacity: 0;
+    pointer-events: none; /* make "click transparent" when done */
+}
+
+
+
+/* ==========================================================================
+   Spinner Reveal Animation
+   ========================================================================== */
+
+@keyframes ajax-progress__spinner-reveal {
+    0%, 70% { /* spinner should not have time to appear on fast loads */
+        opacity: 0;
+    }
+
+    100% {
+        opacity: 0.9;
+    }
+}
+
+
+
+/* ==========================================================================
+   Spinner Dots
+   ========================================================================== */
+
+.ajax-progress__spinner span {
+    width: 14px;
+    height: 14px;
+    border-radius: 50%;
+    animation-fill-mode: both;
+    animation: ajax-progress__spinner-animate-dots 1.6s infinite ease-in-out;
+}
+
+.ajax-progress__spinner span:nth-child(1) {
+    animation-delay: 1s; /* wait for overlay to appear */
+}
+
+.ajax-progress__spinner span:nth-child(2) {
+    animation-delay: 1.16s;
+}
+
+.ajax-progress__spinner span:nth-child(3) {
+    animation-delay: 1.32s;
+}
+
+
+
+/* ==========================================================================
+   Spinner Dots Animation
+   ========================================================================== */
+
+@keyframes ajax-progress__spinner-animate-dots {
+    0%, 100% {
+        box-shadow: 0 -20px 0 -20px;
+    }
+
+    40% {
+        box-shadow: 0 -20px 0 0;
+    }
+}
+
+
+
+

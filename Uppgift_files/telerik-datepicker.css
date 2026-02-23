@@ -1,0 +1,202 @@
+/* ==========================================================================
+   Telerik Datepicker
+   ========================================================================== */
+
+.RadPicker.telerik-datepicker {
+    box-sizing: content-box !important;
+    width: 120px;
+    vertical-align: bottom;
+    line-height: 18px;
+}
+
+.RadPicker.RadTimePicker.telerik-datepicker {
+    width: 80px;
+}
+
+.RadPicker.telerik-datepicker * {
+    box-sizing: content-box !important;
+}
+
+
+
+/* ==========================================================================
+   Block
+   ========================================================================== */
+
+.RadPicker.telerik-datepicker.BLOCK {
+    width: 100%;
+    display: block;
+}
+
+
+
+/* ==========================================================================
+   riTextBox
+   ========================================================================== */
+.RadPicker.telerik-datepicker .riTextBox {
+    border: 1px solid #d0d0d0;
+    margin: 0;
+    color: #333;
+    border-radius: 3px;
+    vertical-align: baseline;
+    padding: 5px 6px;
+    line-height: 18px;
+    -webkit-appearance: none;
+    box-sizing: border-box !important;
+    transition-property: border-color, box-shadow;
+    transition-duration: .2s;
+}
+
+.RadPicker.telerik-datepicker .riTextBox::-ms-clear {
+    opacity: 0;
+    height: 0;
+    width: 0;
+}
+
+
+
+/* ==========================================================================
+   riError
+   ========================================================================== */
+
+.RadPicker.telerik-datepicker .riTextBox.riError {
+    background-image: none;
+    background-color: #fff;
+    color: #333;
+    border-color: #e00;
+}
+
+.RadPicker.telerik-datepicker .riTextBox.riError:focus {
+    border-color: #e00;
+    box-shadow: 0 0 3px rgba(224, 0, 0, .9);
+}
+
+
+
+/* ==========================================================================
+   Disabled
+   ========================================================================== */
+
+.RadPicker.telerik-datepicker .riTextBox:disabled {
+    opacity:.8;
+    color:#444;
+}
+
+
+
+/* ==========================================================================
+   riFocused
+   ========================================================================== */
+
+.RadPicker.telerik-datepicker .riFocused {
+    border-color: #3C9AF4;
+    box-shadow: 0 0 3px rgba(60, 154, 244, .6);
+}
+
+
+
+/* ==========================================================================
+   RadInput
+   ========================================================================== */
+
+.RadPicker.telerik-datepicker .RadInput {
+    box-sizing: border-box !important;
+    vertical-align:baseline;
+    line-height:18px;
+}
+
+
+
+/* ==========================================================================
+   rcSelect a
+   ========================================================================== */
+
+.RadPicker.telerik-datepicker .rcSelect a {
+    background-color: transparent;
+    color: #444;
+    border-color: #d5d5d5;
+}
+
+
+
+/* ==========================================================================
+   TINY
+   ========================================================================== */
+
+.RadPicker.telerik-datepicker.TINY .riTextBox {
+    font-size:12px;
+    padding: 4px 6px;
+    line-height: 14px;
+}
+
+
+
+/* ==========================================================================
+   SMALL
+   ========================================================================== */
+
+.RadPicker.telerik-datepicker.SMALL .riTextBox {
+    font-size:13px;
+    padding: 5px 6px;
+    line-height: 16px;
+}
+
+
+
+/* ==========================================================================
+   LARGE
+   ========================================================================== */
+
+.RadPicker.telerik-datepicker.LARGE .riTextBox {
+    font-size:15px;
+    padding: 5px 6px;
+    line-height: 20px;
+}
+
+
+
+/* ==========================================================================
+   BIG
+   ========================================================================== */
+
+.RadPicker.telerik-datepicker.BIG {
+    width: 132px;
+}
+
+.RadPicker.telerik-datepicker.BIG .riTextBox {
+    font-size:16px;
+    padding: 6px 6px;
+    line-height: 22px;
+}
+
+
+
+/* ==========================================================================
+   HUGE
+   ========================================================================== */
+
+.RadPicker.telerik-datepicker.HUGE {
+    width: 142px;
+}
+
+.RadPicker.telerik-datepicker.HUGE .riTextBox {
+    font-size:18px;
+    padding: 8px 6px;
+    line-height: 24px;
+}
+
+
+
+/* ==========================================================================
+   MASSIVE
+   ========================================================================== */
+
+.RadPicker.telerik-datepicker.MASSIVE {
+    width: 142px;
+}
+
+.RadPicker.telerik-datepicker.MASSIVE .riTextBox {
+    font-size: 20px;
+    padding: 10px 6px;
+    line-height: 26px;
+}

@@ -1,0 +1,376 @@
+'use strict';
+
+(function () {
+
+    var cmp = LearnPoint.createComponent('breadcrumb');
+
+    var ClassName = {
+        // WARNING: Class names are used in master page.
+        RESTORING: 'breadcrumb__restoring-state',
+        HIGHLIGHT: 'breadcrumb__highlight',
+        SELECT_BUTTON_ENABLED: 'ENABLED',
+        BREADCRUMB_LINK_CURRENT: 'CURRENT'
+    }
+
+    var Selector = {
+        BREADCRUMB: cmp.componentSelector(),
+        NODE: cmp.elementSelector('node'),
+        CURRENT_NODE: cmp.elementSelector('current-node'),
+        RETURN_TARGET: cmp.propertyStoreSelector('return-target-id'),
+        SHORTCUTS: '.breadcrumb__shortcuts',
+        SHORTCUT_LINKS: '.breadcrumb__shortcuts a',
+        SHORTCUTS_SELECT_BUTTON: cmp.elementSelector('shortcuts-select-button'),
+        SHORTCUTS_URL_KEY_STORE: cmp.propertyStoreSelector('shortcuts-url-key')
+    }
+
+    var Property = {
+        URL_KEY: 'url-key',
+        RETURN_TARGET: 'return-target-id',
+        SHORTCUTS_URL_KEY: 'shortcuts-url-key'
+    }
+
+    var Param = {
+        // WARNING: Parameter names are used in master page.
+        RESTORE_STATE: 'Breadcrumb.RestoreState'
+    }
+
+    var StorageKey = 'breadcrumb';
+
+
+
+    /* =====================================================================
+       Page Store
+       ===================================================================== */
+
+    var pageStore = {
+        get: key => {
+            const storeObject = getPageStoreObject();
+            return storeObject[key];
+        },
+        set: (key, value) => {
+            var storeObject = getPageStoreObject();
+            storeObject[key] = value;
+            setPageStoreObject(storeObject);
+        },
+        delete: key => {
+            var storeObject = getPageStoreObject();
+            delete storeObject[key];
+            setPageStoreObject(storeObject);
+        },
+        deleteAll: () => setPageStoreObject({})
+    }
+
+
+
+    /* =====================================================================
+       Page Store Helpers
+       ===================================================================== */
+
+    function getPageStoreObject() {
+        return JSON.parse(sessionStorage.getItem(StorageKey)) || {};
+    }
+
+    function setPageStoreObject(obj) {
+        sessionStorage.setItem(StorageKey, JSON.stringify(obj));
+    }
+
+
+
+    /* =====================================================================
+       Current Node Url Key
+       ===================================================================== */
+
+    function currentNodeUrlKey() {
+        var currentNode = document.querySelector(Selector.CURRENT_NODE);
+        if (!currentNode) {
+            return null;
+        }
+
+        var urlKey = cmp.getProperty(currentNode, Property.URL_KEY);
+        if (!urlKey) {
+            return null;
+        }
+
+        return urlKey;
+    }
+
+
+
+    /* =====================================================================
+       Save State When Leaving Page
+       ===================================================================== */
+
+    document.addEventListener('click', function (event) {
+
+        var breadcrumbComponent = document.querySelector(Selector.BREADCRUMB);
+        if (!breadcrumbComponent) {
+            return;
+        }
+
+
+        // 1. Calculate state.
+
+        const pageState = {
+            scroll: Math.floor(window.pageYOffset),
+            replaceUrl: location.href,
+            returnTargetId: (() => {
+                var returnTarget = event.target.closest(Selector.RETURN_TARGET);
+                if (returnTarget) {
+                    return cmp.getProperty(returnTarget, Property.RETURN_TARGET);
+                }
+            })()
+        }
+
+
+        // 2. Save state.
+
+        const urlKey = currentNodeUrlKey();
+
+        const isSaveNeeded = pageState.scroll || pageState.returnTargetId || pageState.replaceUrl !== urlKey;
+
+        if (isSaveNeeded) {
+            pageStore.set(urlKey, pageState);
+        } else {
+            pageStore.delete(urlKey);
+        }
+
+    });
+
+
+
+    /* =====================================================================
+       Append Restore Param On Breadcrumb Links
+       ===================================================================== */
+
+    document.addEventListener('DOMContentLoaded', function (event) {
+
+        var breadcrumbComponent = document.querySelector(Selector.BREADCRUMB);
+        if (!breadcrumbComponent) {
+            return;
+        }
+
+        var nodes = breadcrumbComponent.querySelectorAll(Selector.NODE);
+
+        nodes.forEach(node => {
+            if (node.href === undefined) {
+                // Cannot add param if node don't have href (a button for example).
+                return;
+            }
+
+            var urlKey = cmp.getProperty(node, Property.URL_KEY);
+            var pageObject = pageStore.get(urlKey);
+            if (!pageObject) {
+                return;
+            }
+
+            var urlWithRestoreParam = Utils.urlSetParam(pageObject.replaceUrl, Param.RESTORE_STATE, true);
+            node.href = urlWithRestoreParam;
+        });
+    });
+
+
+
+    /* =====================================================================
+       Restore State When Returning to Page
+       ===================================================================== */
+
+    document.addEventListener('DOMContentLoaded', function (event) {
+
+        var breadcrumbComponent = document.querySelector(Selector.BREADCRUMB);
+        if (!breadcrumbComponent) {
+            return;
+        }
+
+
+        // 1. Delete state and exit if restore param not passed.
+
+        var urlKey = currentNodeUrlKey();
+
+        var restoreState = Utils.urlGetParam(location, Param.RESTORE_STATE);
+        if (!restoreState) {
+            pageStore.delete(urlKey);
+            return;
+        }
+
+
+        // 2. Remove param from browser location.
+
+        var newUrl = Utils.urlRemoveParam(location, Param.RESTORE_STATE);
+        Utils.urlReplaceLocationAndFormAction(newUrl);
+
+
+        // 3. Get and delete the page state. State can only be "used" once.
+
+        var pageState = pageStore.get(urlKey);
+        pageStore.delete(urlKey);
+
+
+        // 4. Apply scroll.
+
+        if (pageState && pageState.scroll) {
+            window.scrollTo(0, pageState.scroll);
+        }
+
+
+        // 5. Apply highlighting.
+
+        if (pageState && pageState.returnTargetId) {
+            var returnTargetId;
+            var returnTarget;
+            var returnTargets = document.querySelectorAll(Selector.RETURN_TARGET);
+            for (var i = 0; i < returnTargets.length; i++) {
+                returnTargetId = cmp.getProperty(returnTargets[i], Property.RETURN_TARGET);
+                if (returnTargetId === pageState.returnTargetId) {
+                    returnTarget = returnTargets[i];
+                    break;
+                }
+            }
+            if (returnTarget) {
+                returnTarget.classList.add(ClassName.HIGHLIGHT);
+                setTimeout(() => returnTarget.classList.remove(ClassName.HIGHLIGHT), 2000);
+            }
+        }
+
+
+        // 6. Remove restoring class from document.
+
+        document.documentElement.classList.remove(ClassName.RESTORING);
+    });
+
+
+
+    /* =====================================================================
+       Update Shortcuts Select Dropdown
+       ===================================================================== */
+
+    window.addEventListener('load', updateShortcuts);
+    Sys.WebForms.PageRequestManager.getInstance().add_endRequest(updateShortcuts);
+
+    function updateShortcuts() {
+
+        var breadcrumbComponent = document.querySelector(Selector.BREADCRUMB);
+        if (!breadcrumbComponent) {
+            return;
+        }
+
+        var nodes = breadcrumbComponent.querySelectorAll(Selector.SHORTCUTS_URL_KEY_STORE);
+
+        nodes.forEach(node => {
+            var shortcutsUrlKey = cmp.getProperty(node, Property.SHORTCUTS_URL_KEY);
+            if (!shortcutsUrlKey) {
+                return;
+            }
+
+            var shortcutsUrlBase = shortcutsUrlKey;
+
+            var shortcutsPageObject = pageStore.get(shortcutsUrlKey);
+            if (shortcutsPageObject) {
+                shortcutsUrlBase = shortcutsPageObject.replaceUrl;
+            }
+
+            var shortcutsUrlObject = new URL(shortcutsUrlBase);
+
+            // We want to create the shortcutsUrl based on shortcutsUrlBase.
+            // shortcutsUrlBase => shortcutsUrl, for example:
+            // StudentList.aspx?Id=7 => StudentList_BreadcrumShortcuts.aspx?Id=7
+
+            var shortcutsUrlPathParts = shortcutsUrlObject.pathname.split('.aspx');
+            var shortcutsUrlPathUpUntilAspx = shortcutsUrlPathParts[0];
+            var shortcutsUrlPath = shortcutsUrlPathUpUntilAspx + '_BreadcrumbShortcuts.aspx';
+
+            shortcutsUrlObject.pathname = shortcutsUrlPath;
+
+            var shortcutsUrl = shortcutsUrlObject.toString();
+            var shortcutsDropdownElement;
+
+            fetch(shortcutsUrl)
+                .then(res => {
+                    if (!res.ok) {
+                        throw new Error(shortcutsUrl + ' could not be fetched.')
+                    }
+                    return res.text()
+                })
+                .then(shortcutsHtml => {
+                    var existingShortcuts = node.querySelector(Selector.SHORTCUTS);
+                    if (existingShortcuts) {
+                        // When updating shortcuts because AJAX postback,
+                        // there will already exist shortcuts. Remove them
+                        // before adding the new ones.
+                        existingShortcuts.remove();
+                    }
+
+                    shortcutsDropdownElement = Utils.createElementFromHtml(shortcutsHtml.trim());
+                    node.appendChild(shortcutsDropdownElement);
+
+                    // Adjust horizontal position if outside viewport.
+                    const rect = shortcutsDropdownElement.getBoundingClientRect();
+                    if (rect.left < 0) {
+                        shortcutsDropdownElement.style.marginLeft = (-1 * rect.left + 16) + 'px';
+                    } else if (rect.right > document.documentElement.clientWidth) {
+                        shortcutsDropdownElement.style.marginLeft = (-1 * (rect.right - document.documentElement.clientWidth + 16)) + 'px';
+                    }
+
+                    // Adjust vertical height if outside viewport
+                    if (rect.bottom > document.documentElement.clientHeight) {
+                        const maxHeightLowerLimit = 320;
+                        const adjustedMaxHeight = Math.max(maxHeightLowerLimit, rect.height - (rect.bottom - document.documentElement.clientHeight) - 16);
+                        shortcutsDropdownElement.style.maxHeight = adjustedMaxHeight + 'px';
+                    }
+                })
+                .then(() => {
+                    const shortcutLinks = node.querySelectorAll(Selector.SHORTCUT_LINKS);
+                    for (let link of shortcutLinks) {
+
+                        if (!locationHasSameTargetAsUrl(link.href)) {
+                            continue;
+                        }
+
+                        // Enable the select button
+                        const shortcutsSelectButton = breadcrumbComponent.querySelector(Selector.SHORTCUTS_SELECT_BUTTON);
+                        if (shortcutsSelectButton) {
+                            shortcutsSelectButton.classList.add(ClassName.SELECT_BUTTON_ENABLED);
+                        }
+
+                        // Set as current.
+                        link.classList.add(ClassName.BREADCRUMB_LINK_CURRENT);
+
+                        // Scroll current into view.
+                        var linkOffsetTop = link.offsetTop;
+                        var contentCenter = shortcutsDropdownElement.offsetHeight / 2;
+                        var scrollNeeded = linkOffsetTop - contentCenter + 42;
+
+                        if (scrollNeeded > 0) {
+                            shortcutsDropdownElement.scrollTop = scrollNeeded;
+                        }
+
+                        // There can be only one current link.
+                        break;
+                    }
+                })
+                .catch(error => {
+                    console.error(error);
+                });
+        });
+    }
+
+    function locationHasSameTargetAsUrl(url) {
+
+        if (location.href === url) {
+            return true;
+        }
+
+        if (location.href.startsWith(url + '&')) {
+            return true;
+        }
+
+        if (location.href.startsWith(url + '?')) {
+            return true;
+        }
+
+        if (location.href.startsWith(url + '#')) {
+            return true;
+        }
+
+        return false;
+    }
+})();

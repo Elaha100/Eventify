@@ -1,0 +1,127 @@
+/* ==========================================================================
+   Page
+   ========================================================================== */
+
+.page {
+    max-width: 1024px;
+    margin: 0 auto;
+    padding: 0 20px;
+}
+
+.is-mobile .page {
+    padding: 0;
+}
+
+
+
+/* ==========================================================================
+   Breadcrumb
+   ========================================================================== */
+
+.page__breadcrumb {
+}
+
+.is-mobile .page__breadcrumb {
+}
+
+
+
+/* ==========================================================================
+   Sheet
+   ========================================================================== */
+
+.page__sheet {
+    display: block;
+    background-color: #fff;
+    box-shadow: 0 1px 3px rgb(0 0 0 / 20%), 0 -1px 0 rgb(0 0 0 / 6%);
+    border-radius: 6px;
+    border-bottom-left-radius: 0;
+    border-bottom-right-radius: 0;
+    position: relative;
+    min-height: calc(100dvh - 144px);
+}
+
+.is-mobile .page__sheet {
+    box-shadow: none;
+    border-radius: 0;
+    border: 0;
+    min-height: calc(100dvh - 164px);
+}
+
+.no-subnav .page__sheet {
+    min-height: calc(100dvh - 93px);
+}
+
+.no-subnav.is-mobile .page__sheet {
+    min-height: calc(100dvh - 118px);
+}
+
+.is-mobile .page__breadcrumb + .page__sheet {
+    border-top: 1px solid #ddd;
+    border-bottom: 1px solid #ddd;
+}
+
+
+
+/* ==========================================================================
+   Header
+   ========================================================================== */
+
+.page__header {
+    padding: 24px;
+    border-bottom: 1px solid #ddd;
+}
+
+.is-mobile .page__header {
+    padding: 16px;
+}
+
+.print .page__header {
+    display: none;
+}
+
+
+
+/* ==========================================================================
+   Space Between
+   ========================================================================== */
+
+.page__space-between {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 8px;
+}
+
+
+
+
+/* ==========================================================================
+   Content Wrap
+   ========================================================================== */
+
+.page__content-wrap {
+    max-width: 768px;
+    margin: 0 auto;
+    padding: 12px 32px 32px;
+}
+
+.is-mobile .page__content-wrap {
+    padding: 12px 16px 24px;
+}
+
+
+
+/* ==========================================================================
+   Content Fullwidth Wrap
+   ========================================================================== */
+
+.page__content-fullwidth-wrap {
+    padding: 12px 32px 32px;
+    position: relative;
+}
+
+.is-mobile .page__content-fullwidth-wrap {
+    padding: 12px 16px 24px;
+}

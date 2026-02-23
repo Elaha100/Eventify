@@ -1,0 +1,113 @@
+﻿'use strict';
+
+(function () {
+
+    const cmp = LearnPoint.createComponent('main');
+
+
+
+    /* =====================================================================
+       Events
+       ===================================================================== */
+
+    const Event = {
+        LEARNPOINT_PAGE_READY: 'main_LearnPointPageReady'
+    }
+
+    cmp['Event'] = Event;
+
+
+
+    /* =====================================================================
+       Startup script
+       ===================================================================== */
+
+    document.addEventListener('DOMContentLoaded', function () {
+
+        LearnPoint.SiteScrolling.RestorePosition(function () {
+
+            var pageReady_Event = new CustomEvent(Event.LEARNPOINT_PAGE_READY, { 'bubbles': true });
+            document.documentElement.dispatchEvent(pageReady_Event);
+
+        });
+    });
+
+
+
+    /* =====================================================================
+       Get PostBack Element
+       ===================================================================== */
+
+    let _postBackElementId = null;
+
+    function getPostBackElement() {
+        if (_postBackElementId === null) {
+            return null;
+        }
+
+        return document.getElementById(_postBackElementId);
+    }
+
+    cmp['getPostBackElement'] = getPostBackElement;
+
+
+
+    /* =====================================================================
+       Get Update Panels
+       ===================================================================== */
+
+    let _updatePanels = [];
+
+    function getUpdatePanels() {
+        return _updatePanels;
+    }
+
+    cmp['getUpdatePanels'] = getUpdatePanels;
+
+
+
+    /* =====================================================================
+       Keeping the PostBack Element & Update Panels up-to-date
+       ===================================================================== */
+
+    document.addEventListener('DOMContentLoaded', function () {
+
+        Sys.WebForms.PageRequestManager.getInstance().add_initializeRequest((sender, args) => {
+            _postBackElementId = args.get_postBackElement().id;
+
+
+            _updatePanels = [];
+            const updatePanelClientIDs = sender._updatePanelClientIDs;
+
+            args.get_updatePanelsToUpdate().forEach(panelServerId => {
+
+                const panelClientId = panelServerId.replaceAll('$', '_');
+
+                if (updatePanelClientIDs.includes(panelClientId)) {
+
+                    const panel = document.getElementById(panelClientId);
+                    if (panel) {
+                        _updatePanels.push(panel);
+                    }
+                }
+            });
+        });
+
+        Sys.WebForms.PageRequestManager.getInstance().add_beginRequest((sender, args) => {
+            // Prevent scrolling after ajax request is done - https://www.telerik.com/forums/how-do-you-prevent-browser-scrolling-after-ajax-postback
+            sender._scrollPosition = null;
+
+            _postBackElementId = args.get_postBackElement().id;
+        });
+
+
+        Sys.WebForms.PageRequestManager.getInstance().add_pageLoaded((sender, args) => {
+            if (!sender.get_isInAsyncPostBack()) {
+                return;
+            }
+
+            _updatePanels = args.get_panelsUpdated();
+        });
+    });
+
+})();

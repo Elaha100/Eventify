@@ -1,0 +1,116 @@
+﻿'use strict';
+
+(function () {
+
+    const cmp = LearnPoint.createComponent('ascx-notification-marker');
+
+    const Selector = {
+        MARKER: cmp.componentSelector('ascx-notification-marker'),
+        CONSUMED: cmp.elementSelector('consumed')
+    }
+    cmp['Selector'] = Selector;
+
+
+    const Property = {
+        NOTIFICATION_SOURCE_ID: 'notification-source-id',
+        TIMESTAMP: 'timestamp'
+    }
+    cmp['Property'] = Property;
+
+
+    const intersectionObserver = new IntersectionObserver(markerIntersect, {});
+
+
+
+    /* =====================================================================
+       TESTING - PAGE LOADED EVENT
+       ===================================================================== */
+
+    //Sys.WebForms.PageRequestManager.getInstance().add_pageLoaded((sender, args) => {
+    //    const ajaxRequest = sender.get_isInAsyncPostBack();
+    //    console.log('ajaxRequest', ajaxRequest);
+
+    //    const updatedPanels = args.get_panelsUpdated();
+    //    console.log('UPDATED PANELS', updatedPanels);
+
+    //    const createdPanels = args.get_panelsCreated();
+    //    console.log('CREATED PANELS', createdPanels);
+
+    //    for (const panel of updatedPanels) {
+    //        console.log(panel)
+    //        panel.style.border = "2px solid green";
+    //    }
+
+    //});
+
+
+
+    /* =====================================================================
+       Start Obsering on Load & Ajax
+       ===================================================================== */
+
+    window.addEventListener('load', () => startObserving());
+
+    Sys.WebForms.PageRequestManager.getInstance().add_endRequest((sender, args) => {
+
+        const updatePanels = LearnPoint.Main.getUpdatePanels();
+        for (const updatePanel of updatePanels) {
+            startObserving(updatePanel)
+        }
+    });
+
+
+
+    /* =====================================================================
+       Start Observing
+       ===================================================================== */
+
+    function startObserving(scope = document) {
+        const markers = scope.querySelectorAll(Selector.MARKER);
+
+        for (const marker of markers) {
+            intersectionObserver.observe(marker);
+        }
+    }
+
+
+
+    /* =====================================================================
+       Marker Intersect Handler
+       ===================================================================== */
+
+    async function markerIntersect(entries, observer) {
+        entries.forEach(async entry => {
+            if (!entry.isIntersecting) {
+                return;
+            }
+
+            if (!entry.target.matches(Selector.MARKER)) {
+                return;
+            }
+
+            // Remove target once it's used.
+            intersectionObserver.unobserve(entry.target);
+
+
+            // Tell backend that marker is used (consumed).
+            const consumed = entry.target.querySelector(Selector.CONSUMED);
+            if (consumed) {
+                consumed.value = 'true';
+            }
+
+            const notificationSourceId = cmp.getProperty(entry.target, Property.NOTIFICATION_SOURCE_ID);
+            if (!notificationSourceId) {
+                return;
+            }
+
+            const timestamp = cmp.getProperty(entry.target, Property.TIMESTAMP);
+            if (!timestamp) {
+                return;
+            }
+
+            Utils.visitNotificationSource(notificationSourceId, timestamp);
+        });
+    }
+
+})();

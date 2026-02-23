@@ -1,0 +1,167 @@
+﻿'use strict';
+
+window.LearnPoint = window.LearnPoint || {};
+
+LearnPoint.createComponent = function (componentHyphensName) {
+
+    var componentPascalName = Utils.hyphensToPascal(componentHyphensName);
+    if (LearnPoint.hasOwnProperty(componentPascalName)) {
+        throw new Error('Name conflict. Component ' + componentPascalName + ' is already registered');
+    }
+
+    var component = (function (hyphensName, pascalName) {
+
+        var cmp = {};
+
+        cmp.name = hyphensName;
+
+        cmp.componentSelector = function () {
+            return LearnPoint.componentSelector(hyphensName);
+        };
+
+        cmp.elementSelector = function (elementName) {
+            return LearnPoint.elementSelector(hyphensName, elementName);
+        };
+
+        cmp.propertyStoreSelector = function (propertyName) {
+            return LearnPoint.propertyStoreSelector(hyphensName, propertyName);
+        };
+
+        cmp.propertyStoreWithValueSelector = function (propertyName, propertyValue) {
+            return LearnPoint.propertyStoreWithValueSelector(hyphensName, propertyName, propertyValue);
+        }
+
+        cmp.getProperty = function (element, propertyName) {
+            return LearnPoint.getProperty(element, hyphensName, propertyName);
+        }
+
+        return cmp;
+
+    })(componentHyphensName, componentPascalName);
+
+    LearnPoint[componentPascalName] = component;
+
+    return component;
+};
+
+// ----------------------------------------------------------------------------
+
+LearnPoint.componentSelector = function (componentHyphensName) {
+    return '[data-component~="' + componentHyphensName + '"]';
+};
+
+LearnPoint.elementSelector = function (componentHyphensName, elementName) {
+    return '[data-element~="' + componentHyphensName + '.' + elementName + '"]';
+};
+
+LearnPoint.propertyStoreSelector = function (componentHyphensName, propertyName) {
+    return '[data-property*="' + componentHyphensName + '.' + propertyName + ':"]';
+};
+
+LearnPoint.propertyStoreWithValueSelector = function (componentHyphensName, propertyName, propertyValue) {
+    return '[data-property*="' + componentHyphensName + '.' + propertyName + ':' + propertyValue + '"]';
+};
+
+// ----------------------------------------------------------------------------
+
+LearnPoint.getProperty = function (element, componentHyphensName, propertyName) {
+    var properties = LearnPoint.getProperties(element);
+
+    var key = `${componentHyphensName}.${propertyName}`
+    if (!properties.hasOwnProperty(key)) {
+        return null;
+    }
+
+    return properties[key];
+}
+
+// ----------------------------------------------------------------------------
+
+LearnPoint.getProperties = function (element) {
+    var str = element.getAttribute('data-property');
+
+    if (!str) {
+        return {};
+    }
+
+    if (!str.includes(':')) {
+        return {};
+    }
+
+    var props = {};
+
+    var nameStart = 0;
+    var nameEnd = 0;
+    var valueStart = 0;
+    var valueEnd = 0;
+    var quotedValue = false;
+
+    for (var i = 0; i < str.length; i++) {
+
+        // 1. nameStart is already set
+
+
+        // 2. Find nameEnd
+
+        if (str[i] !== ':') {
+            continue;
+        }
+
+        nameEnd = i;
+
+
+        // 3. Find valueStart
+
+        i++; // skip the ':'
+
+        if (str[i] === "'") {
+            quotedValue = true;
+            i++;
+        } else {
+            quotedValue = false;
+        }
+
+        valueStart = i;
+
+
+        // 4. Find valueEnd
+
+        while (true) {
+            if (quotedValue && str[i] === "'") {
+                valueEnd = i;
+                i++; // skip the "'"
+                break;
+            } else if (!quotedValue && str[i] === " ") {
+                valueEnd = i;
+                break;
+            } else if (i === str.length - 1) {
+                valueEnd = i + 1;
+                break;
+            } else if (i > str.length - 1) {
+                // String overflow. Setting valueEnd equal to valueStart
+                // will result in an empty string as prop value.
+                valueEnd = valueStart;
+                break;
+            }
+
+            i++;
+        }
+
+
+        // 5. Add the property
+
+        var prop = {
+            name: str.substring(nameStart, nameEnd),
+            value: str.substring(valueStart, valueEnd)
+        }
+
+        props[prop.name] = prop.value;
+
+
+        // 6. Set nameStart for next property
+
+        nameStart = i + 1;
+    }
+
+    return props;
+}

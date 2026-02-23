@@ -1,0 +1,180 @@
+﻿/* ==========================================================================
+   Progress Bar
+   ========================================================================== */
+
+.file-handler__progress-bar {
+    display: flex;
+    align-items: center;
+    gap: 1em;
+    background-color: rgba(0, 0, 0, .04);
+    padding: 1em;
+    border-radius: 1em;
+    margin-bottom: 1em;
+}
+
+
+
+/* ==========================================================================
+   File Icon
+   ========================================================================== */
+
+.file-handler__progress-bar-file-icon {
+    flex-shrink: 0;
+    width: 2.3em;
+    height: 2.3em;
+    border-radius: .5em;
+    background-size: contain;
+    background-repeat: no-repeat;
+    background-position: center;
+    background-image: var(--file-icons__background-image__default);
+    background-color: var(--file-icons__background-color__default);
+}
+
+
+
+/* ==========================================================================
+   File Icon Extensions
+   ========================================================================== */
+
+.file-handler__progress-bar-file-icon.txt,
+.file-handler__progress-bar-file-icon.text,
+.file-handler__progress-bar-file-icon.css,
+.file-handler__progress-bar-file-icon.js,
+.file-handler__progress-bar-file-icon.html,
+.file-handler__progress-bar-file-icon.csv,
+.file-handler__progress-bar-file-icon.sql,
+.file-handler__progress-bar-file-icon.json {
+    background-image: var(--file-icons__background-image__text);
+    background-color: var(--file-icons__background-color__text);
+}
+
+.file-handler__progress-bar-file-icon.doc,
+.file-handler__progress-bar-file-icon.docx,
+.file-handler__progress-bar-file-icon.odt,
+.file-handler__progress-bar-file-icon.pages {
+    background-image: var(--file-icons__background-image__document);
+    background-color: var(--file-icons__background-color__document);
+}
+
+.file-handler__progress-bar-file-icon.xls,
+.file-handler__progress-bar-file-icon.xlsx,
+.file-handler__progress-bar-file-icon.ods,
+.file-handler__progress-bar-file-icon.numbers {
+    background-image: var(--file-icons__background-image__spreadsheet);
+    background-color: var(--file-icons__background-color__spreadsheet);
+}
+
+.file-handler__progress-bar-file-icon.ppt,
+.file-handler__progress-bar-file-icon.pptx,
+.file-handler__progress-bar-file-icon.odp,
+.file-handler__progress-bar-file-icon.key {
+    background-image: var(--file-icons__background-image__presentation);
+    background-color: var(--file-icons__background-color__presentation);
+}
+
+.file-handler__progress-bar-file-icon.pdf {
+    background-image: var(--file-icons__background-image__pdf);
+    background-color: var(--file-icons__background-color__pdf);
+}
+
+.file-handler__progress-bar-file-icon.zip {
+    background-image: var(--file-icons__background-image__zip);
+    background-color: var(--file-icons__background-color__zip);
+}
+
+.file-handler__progress-bar-file-icon.mp4,
+.file-handler__progress-bar-file-icon.wmv,
+.file-handler__progress-bar-file-icon.webm,
+.file-handler__progress-bar-file-icon.mkv,
+.file-handler__progress-bar-file-icon.ogg,
+.file-handler__progress-bar-file-icon.avi,
+.file-handler__progress-bar-file-icon.mov {
+    background-image: var(--file-icons__background-image__video);
+    background-color: var(--file-icons__background-color__video);
+}
+
+.file-handler__progress-bar-file-icon.mp3,
+.file-handler__progress-bar-file-icon.aac,
+.file-handler__progress-bar-file-icon.aiff,
+.file-handler__progress-bar-file-icon.flac,
+.file-handler__progress-bar-file-icon.m4a,
+.file-handler__progress-bar-file-icon.wav {
+    background-image: var(--file-icons__background-image__audio);
+    background-color: var(--file-icons__background-color__audio);
+}
+
+.file-handler__progress-bar-file-icon.png,
+.file-handler__progress-bar-file-icon.jpg,
+.file-handler__progress-bar-file-icon.jpeg,
+.file-handler__progress-bar-file-icon.heic,
+.file-handler__progress-bar-file-icon.gif,
+.file-handler__progress-bar-file-icon.svg,
+.file-handler__progress-bar-file-icon.bmp,
+.file-handler__progress-bar-file-icon.psd,
+.file-handler__progress-bar-file-icon.webp,
+.file-handler__progress-bar-file-icon.avif {
+    background-image: var(--file-icons__background-image__image);
+    background-color: var(--file-icons__background-color__image);
+}
+
+
+
+/* ==========================================================================
+   Progress Bar Name and Measure Container
+   ========================================================================== */
+
+.file-handler__progress-bar-name-and-measure-container {
+    flex: 1;
+    min-width: 0;
+}
+
+
+
+/* ==========================================================================
+   Progress Bar Name
+   ========================================================================== */
+
+.file-handler__progress-bar-name {
+    color: inherit;
+    margin-bottom: .5em;
+    font-weight: 600;
+    font-family: monospace;
+    font-size: .9em;
+    line-height: 1.2;
+    overflow-wrap: anywhere;
+}
+
+
+
+/* ==========================================================================
+   Progress Bar Measure
+   ========================================================================== */
+
+.file-handler__progress-bar-measure {
+    background-color: #fff;
+    border-radius: .25em;
+}
+
+
+
+/* ==========================================================================
+   Progress Bar Value
+   ========================================================================== */
+
+.file-handler__progress-bar-value {
+    background-color: #0780ff;
+    border-radius: .25em;
+    height: .5em;
+    width: 0%;
+    transition: width .3s linear;
+}
+
+.file-handler__progress-bar.DONE .file-handler__progress-bar-value {
+    background-color: green;
+    transition: none;
+}
+
+.file-handler__progress-bar.ERROR .file-handler__progress-bar-value {
+    background-color: red;
+    transition: none;
+}

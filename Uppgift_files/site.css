@@ -1,0 +1,390 @@
+/* =========================================================================
+   Global defaults and common tools
+   ========================================================================= */
+
+html {
+    font-family: -apple-system, "Segoe UI", Helvetica, sans-serif;
+    font-size: 14px;
+    line-height: 1.5;
+    color: #222930; /* slightly darker black */
+    -webkit-text-size-adjust: 100%;
+    -ms-text-size-adjust: 100%;
+    -webkit-tap-highlight-color: transparent;
+    scrollbar-width: thin;
+}
+
+body {
+    margin: 0;
+    overflow-y: scroll;
+    background-color: #fcf8f3;
+    background-color: #faecec;
+    background-color: #f9f0f0;
+    background-color: #fff5f5;
+    background-color: #f7f7f7;
+    background-color: #f9f9f9;
+    background-color: #fcfaf6;
+    background-color: hsl(38 35% 97% / 1);
+}
+
+.page-element-fullscreen.is-mobile body {
+    background-color: #fff;
+}
+
+:focus {
+    outline:none;
+}
+
+a {
+    outline: 0;
+    text-decoration: underline;
+    text-decoration: none;
+    color: #0094EF;
+    color: #0079f2;
+    background-color: transparent;
+}
+
+a.keyboard-focus:focus {
+    border-radius: 4px;
+    box-shadow: 0 0 2px 2px #0780ff;
+}
+
+a:hover {
+    text-decoration: underline;
+}
+
+.is-mobile a:hover {
+    text-decoration: none;
+}
+
+.clearfix:before,
+.clearfix:after {
+    display: table;
+    content: " ";
+}
+
+.clearfix:after {
+    clear: both;
+}
+
+.preserve-user-input-whitespaces {
+    white-space: pre-wrap;
+}
+
+.dash-if-empty:empty::after {
+    content: "-";
+}
+
+.display-none {
+    display: none !important;
+}
+
+.ellipsis-text-line {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+
+
+/* =========================================================================
+   Site 
+   ========================================================================= */
+
+.site {
+    margin-top: 52px;
+}
+
+.is-mobile .site {
+    margin: 0;
+}
+
+.print .site {
+    margin: 0;
+}
+
+
+
+/* =========================================================================
+   Site header
+   ========================================================================= */
+
+.site-header,
+.site-header * {
+    -webkit-tap-highlight-color: rgba(0,0,0,0);
+}
+
+.site-header {
+    position: fixed;
+    top: 0;
+    right: 0;
+    left: 268px;
+    left: 248px;
+    z-index: 100;
+    overflow: hidden;
+    background-color: #fff;
+    border-bottom: 1px solid #e5e5e5;
+    transition: left .2s ease;
+    height: 48px;
+    display: flex;
+    align-items: center;
+}
+
+
+.is-mobile .site-header {
+    position: relative;
+    left: 0;
+    transition: opacity .5s ease;
+    opacity: 1;
+}
+
+.is-mobile .site-scrolling--scroll-after-postback .site-header {
+    opacity: 0;
+}
+
+
+
+/* =========================================================================
+   Site header Indicator
+   ========================================================================= */
+
+.site-header__not-member-indicator-button,
+.site-header__not-subscribed-indicator-button {
+    width: 14px;
+    height: 14px;
+    background-image: url(../../../../Images/svg-icons/notification-bell-off-aaaaaa.svg);
+    background-position: center;
+    background-repeat: no-repeat;
+    background-size: 14px;
+    background-color: transparent;
+    cursor: pointer;
+    border: none;
+    outline: none;
+    opacity: 0.8;
+    padding: 0 8px;
+    position: relative;
+    top: 1px;
+}
+
+
+
+/* =========================================================================
+   Title Wrapper
+   ========================================================================= */
+
+.site-header__title-wrapper {
+    text-align: center;
+    margin: 26px 0 0;
+}
+
+.is-mobile .site-header__title-wrapper {
+    margin: 8px 0 0;
+}
+
+.is-mobile.page-element-fullscreen .site-header__title-wrapper {
+    display: none;
+}
+
+.print.is-mobile.page-element-fullscreen .site-header__title-wrapper {
+    display: block;
+}
+
+
+
+/* =========================================================================
+   Site title
+   ========================================================================= */
+
+.site-header__title {
+    display: block;
+    font-weight: bold;
+    font-size: 20px;
+    line-height: 1.1;
+    word-break: break-word;
+    overflow-wrap: break-word;
+    padding: 0 16px;
+    max-width: 960px;
+    margin: 0 auto;
+}
+
+.is-mobile .site-header__title {
+    padding: 0 8px;
+    max-width: 100%;
+}
+
+.site-header__title-wrapper.NO-SUB-TITLE .site-header__title,
+.is-mobile .site-header__title-wrapper.NO-SUB-TITLE .site-header__title {
+    padding: 8px 16px 11px;
+}
+
+
+
+/* =========================================================================
+   Sub Title
+   ========================================================================= */
+
+.site-header__sub-title {
+    color: #777;
+    margin: 4px 0 0;
+    font-size: 13px;
+    line-height: 1.3;
+    display: flex;
+    gap: 3px;
+    align-items: center;
+    justify-content: center;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    letter-spacing: .5px;
+    letter-spacing: 0;
+    font-size: 12px;
+    font-weight: 600;
+}
+
+
+
+/* =========================================================================
+   Sub Title Divider
+   ========================================================================= */
+
+.site-header__divider {
+    padding: 0 2px;
+}
+
+
+
+/* =========================================================================
+   Site content
+   ========================================================================= */
+
+.site-content {
+    opacity: 1;
+    width: 100%;
+    box-sizing: border-box;
+    transition: opacity .1s ease;
+}
+
+.site-scrolling--scroll-after-postback .site-content {
+    opacity: 0;
+}
+
+.is-mobile .site-content {
+    overflow: visible;
+    background-color: transparent;
+    padding-top: 0px;
+    padding-left: 0px;
+}
+
+
+
+/* =========================================================================
+   Validation
+   ========================================================================= */
+
+.site-content .validation-error {
+    color: red;
+}
+
+
+
+/* =========================================================================
+   Site sub navigation
+   ========================================================================= */
+
+.site-sub-navigation {
+    color: #444;
+    max-width: 1024px;
+    margin: 10px auto 0;
+    padding: 0 20px;
+}
+
+.is-mobile .site-sub-navigation {
+    padding: 0;
+}
+
+.is-mobile.page-element-fullscreen .site-sub-navigation {
+    display: none;
+}
+
+.print.is-mobile.page-element-fullscreen .site-sub-navigation {
+    display: block;
+}
+
+
+
+/* =========================================================================
+   Sub navigation UL
+   ========================================================================= */
+
+.site-sub-navigation ul {
+    margin: 0 32px;
+    padding: 2px 0 0 0;
+    background-color: #fff;
+    box-shadow: 0 1px 3px rgb(0 0 0 / 20%);
+    border-radius: 4px 4px 1px 1px;
+    list-style: none;
+    display: flex;
+    justify-content: safe center;
+    gap: 2px;
+    overflow-x: auto;
+}
+
+.is-mobile .site-sub-navigation ul {
+    justify-content: initial;
+    border-radius: 0;
+    border-bottom: 1px solid #ddd;
+    margin: 0;
+    padding: 2px 8px 0;
+}
+
+.print .site-sub-navigation ul {
+    box-shadow: none;
+}
+
+.site-sub-navigation ul li {
+    padding: 0;
+}
+
+.site-sub-navigation ul li a {
+    color: inherit;
+    text-decoration: none;
+    display: block;
+    padding: 0 8px;
+    box-sizing: border-box;
+    line-height: 36px;
+}
+
+.site-sub-navigation ul li.selected {
+    border-bottom: 2px solid #333;
+    color: #000;
+}
+
+.site-sub-navigation ul li.selected a {
+    /*border-bottom: 2px solid #333;*/
+}
+
+
+
+/* =========================================================================
+   Sub Navigation Scrollbar
+   ========================================================================= */
+
+@supports not selector(::-webkit-scrollbar) {
+    .site-sub-navigation ul {
+        scrollbar-width: thin;
+        scrollbar-color: rgba(0, 0, 0, .1) rgba(0, 0, 0, .04);
+    }
+}
+
+.is-desktop .site-sub-navigation ul::-webkit-scrollbar {
+    width: 8px;
+    height: 8px;
+}
+
+.is-desktop .site-sub-navigation ul::-webkit-scrollbar-thumb {
+    border-radius: 4px;
+    background-color: rgba(0,0,0,.1);
+}
+
+.is-desktop .site-sub-navigation ul::-webkit-scrollbar-track {
+    background-color: rgba(0,0,0,.04);
+    border-radius: 0;
+}

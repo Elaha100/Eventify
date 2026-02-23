@@ -1,0 +1,269 @@
+﻿'use strict';
+
+(function () {
+
+    var cmp = LearnPoint.createComponent('avatar');
+
+    var Selector = {
+        AVATAR: cmp.componentSelector('avatar'),
+        AVATAR_OPEN: cmp.componentSelector('avatar') + '.OPEN',
+        PROFILE_CARD: cmp.elementSelector('profile-card'),
+        PROFILE_CARD_OPEN: cmp.elementSelector('profile-card') + '.OPEN',
+        PROFILE_CARD_CONTENT: cmp.elementSelector('profile-card-content'),
+        PROFILE_CARD_CLOSE_BUTTON: cmp.elementSelector('profile-card-close-button')
+    }
+
+    var ClassName = {
+        OPEN: 'OPEN'
+    }
+
+    // WARNING: Must match css
+    var ProfileCardContentWidth = 264;
+
+
+
+    /* =====================================================================
+       Click Handler
+       ===================================================================== */
+
+    document.addEventListener('click', function (event) {
+
+        /*
+         * Closing or opening the profile card could potentially
+         * be triggered from a click inside a link or button.
+         *  
+         *  We try to call preventDefault() when this might be the case.
+         *
+         * This will however NOT prevent other javascript handlers. If
+         * the behaviour of a button is controlled by javascript,
+         * that behaviour will not be prevented.
+         *
+         * For example:
+         *
+         * If a profile card is open and the user clicks a button
+         * with simple-confirm, the simple-confirm will appear after
+         * the profile card is closed.
+         * 
+         */
+
+        if (event.target.matches(Selector.PROFILE_CARD_CLOSE_BUTTON)) {
+            closeProfileCard();
+            return;
+        }
+
+        if (event.target.closest(Selector.PROFILE_CARD_CONTENT)) {
+            return;
+        }
+
+        if (event.target.matches(Selector.AVATAR_OPEN)) {
+            closeProfileCard();
+            event.preventDefault(); // Avatar might be inside an <a> element.
+            return;
+        }
+
+        if (event.target.matches(Selector.AVATAR)) {
+            closeProfileCard(); // Another profile card might be open.
+            openProfileCard(event.target);
+            event.preventDefault(); // Avatar might be inside an <a> element.
+            return;
+        }
+
+        var anyOpenAvatar = document.querySelector(Selector.AVATAR_OPEN);
+        if (anyOpenAvatar) {
+
+            // User has clicked somewhere OUTSIDE avatar or profile card.
+            // We know this because otherwise previous if-elses above would
+            // have gotten a match, done it's thing and returned.
+            // But there's appearently an avatar open on the page. We will:
+            // 1) Close the avatar.
+            // 2) Prevent default. User perhaps clicked a button or link to close the profile card.
+
+            closeProfileCard();
+            event.preventDefault();
+        }
+
+    });
+
+
+
+    /* =====================================================================
+       Esc Key Handler
+       ===================================================================== */
+
+    document.addEventListener('keydown', function (event) {
+        if (event.key === 'Escape' || event.key === 'Esc') {
+            closeProfileCard();
+        }
+    });
+
+
+
+    /* =====================================================================
+       Open Profile Card
+       ===================================================================== */
+
+    function openProfileCard(avatar) {
+
+
+        // 1. Create & Insert
+
+        createAndInsertProfileCardElement(avatar, profileCard => {
+
+
+            // 2. Position the Content
+
+            var avatarRect = avatar.getBoundingClientRect();
+
+            var availableSpace = {
+                top: avatarRect.top,
+                right: document.documentElement.clientWidth - avatarRect.left - avatarRect.width,
+                bottom: document.documentElement.clientHeight - avatarRect.top - avatarRect.height,
+                left: avatarRect.left
+            };
+
+            var profileCardContent = profileCard.querySelector(Selector.PROFILE_CARD_CONTENT);
+
+            if (isMobile) {
+                profileCardContent.style.top = '10%';
+                profileCardContent.style.left = 'calc(50% - 128px)';
+                profileCardContent.style.transformOrigin = 'center center';
+
+            } else {
+
+                var verticalTransformOrigin;
+
+                var avatarCenterFromLeft = avatarRect.left + avatarRect.width / 2;
+                var avatarCenterFromLeftPercent = avatarCenterFromLeft / document.documentElement.clientWidth;
+                var isAvatarCloseToCenter = avatarCenterFromLeftPercent > 0.4 && avatarCenterFromLeftPercent < 0.6;
+
+                if (isAvatarCloseToCenter) {
+
+                    profileCardContent.style.left = `${avatarRect.left + (avatarRect.width / 2) - (ProfileCardContentWidth / 2) + window.pageXOffset}px`;
+                    verticalTransformOrigin = 'center';
+
+                } else if (availableSpace.right > availableSpace.left) {
+
+                    profileCardContent.style.left = `${avatarRect.left + window.pageXOffset - 8}px`;
+                    verticalTransformOrigin = 'left';
+
+                } else {
+
+                    profileCardContent.style.right = `${availableSpace.right - window.pageXOffset - 8}px`;
+                    verticalTransformOrigin = 'right';
+                }
+
+                var horizontalTransformOrigin;
+
+                if (availableSpace.top > availableSpace.bottom) {
+
+                    profileCardContent.style.bottom = `${availableSpace.bottom - window.pageYOffset + avatarRect.height + 12}px`;
+                    profileCardContent.style.top = 'auto'; // unset the default value in stylesheet
+                    horizontalTransformOrigin = 'bottom';
+
+                } else {
+
+                    profileCardContent.style.top = `${avatarRect.bottom + window.pageYOffset + 8}px`;
+                    horizontalTransformOrigin = 'top';
+
+                }
+
+                profileCardContent.style.transformOrigin = `${verticalTransformOrigin} ${horizontalTransformOrigin}`;
+
+            }
+
+
+            // 3. Open
+            profileCard.classList.add(ClassName.OPEN);
+            avatar.classList.add(ClassName.OPEN);
+
+
+            // 4. Disable site scroll on mobile
+            if (isMobile) {
+
+                LearnPoint.SiteScrolling.Disable();
+
+            }
+
+        });
+    }
+
+
+
+    /* =====================================================================
+       Close Profile Card
+       ===================================================================== */
+
+    function closeProfileCard() {
+
+        // 1. Close and remove the Profile Card
+
+        var openProfileCard = document.querySelector(Selector.PROFILE_CARD_OPEN);
+        if (openProfileCard) {
+
+            openProfileCard.addEventListener('transitionend', function removeProfileCard() {
+                openProfileCard.removeEventListener('transitionend', removeProfileCard);
+                openProfileCard.remove();
+            });
+
+            openProfileCard.classList.remove(ClassName.OPEN);
+        }
+
+
+        // 2. Close the Avatar
+
+        var openAvatar = document.querySelector(Selector.AVATAR_OPEN);
+        if (openAvatar) {
+            openAvatar.classList.remove(ClassName.OPEN);
+        }
+
+
+        // 3. Enable site scroll on mobile
+
+        if (openAvatar && LearnPoint.SiteScrolling.IsDisabled()) {
+            LearnPoint.SiteScrolling.Enable();
+        }
+        
+
+    }
+
+
+    /* =====================================================================
+       Create And Insert Profile Card Element
+       ===================================================================== */
+
+    function createAndInsertProfileCardElement(avatar, done) {
+
+        var profileCardMarkup = `
+            <div class="avatar__profile-card" data-element="avatar.profile-card">
+                <div class="avatar__profile-card-overlay" data-element="avatar.profile-card-overlay"></div>
+                <div class="avatar__profile-card-content" data-element="avatar.profile-card-content">
+                    <img class="avatar__profile-image" />
+                    <button type="button" class="avatar__profile-card-close-button" data-element="avatar.profile-card-close-button"></button>
+                    <div class="avatar__profile-details">
+                        <div class="avatar__profile-name">${avatar.dataset["avatar.profileName"]}</div>
+                        ${avatar.dataset["avatar.schoolName"] ? `<div class="avatar__school-name">${avatar.dataset["avatar.schoolName"]}</div>` : ''}
+                        ${avatar.dataset["avatar.profileEmail"] ? `<div class="avatar__profile-info">${avatar.dataset["avatar.profileEmail"]}</div>` : ''}
+                        ${avatar.dataset["avatar.profilePageUrl"] ? `<a href="${avatar.dataset["avatar.profilePageUrl"]}" class="avatar__profile-link">Visa profilsidan</a>` : ''}
+                        ${avatar.dataset["avatar.signoutUrl"] ? `<a href="${avatar.dataset["avatar.signoutUrl"]}" class="avatar__signout-link">Logga ut</a>` : ''}
+                    </div>
+                </div>
+            </div>`;
+
+        var profileCardElement = Utils.createElementFromHtml(profileCardMarkup);
+
+        document.body.appendChild(profileCardElement);
+
+        var profileImage = profileCardElement.querySelector('.avatar__profile-image');
+
+        // Wait for image to load to avoid image loading flicker in UI
+
+        profileImage.addEventListener('load', function profileImageLoaded() {
+            profileImage.removeEventListener('load', profileImageLoaded);
+            done(profileCardElement);
+        });
+
+        profileImage.src = avatar.src;
+
+    }
+
+})();

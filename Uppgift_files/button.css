@@ -1,0 +1,205 @@
+/* ==========================================================================
+   Button
+   ========================================================================== */
+
+.button {
+    display: inline-block;
+    background-image: linear-gradient(rgba(0,0,0,0), rgba(0,0,0,0) 50%, rgba(0,0,0,0.02));
+    background-color: #fff;
+    border:1px solid #b5b5b5;
+    border-radius: 64px; /* Clipped by browser to half of element (button) width or height, whichever is smallest */
+    border-radius: 5px;
+    color: #111;
+    color: inherit;
+    cursor: pointer;
+    font-family: inherit;
+    font-size: 14px;
+    font-weight: normal;
+    line-height: 16px;
+    outline: 0;
+    padding: 6px 14px;
+    margin: 0;
+    text-align: center;
+    text-decoration: none;
+    transition: background-color .2s, box-shadow .2s;
+    -webkit-tap-highlight-color: rgba(0,0,0,.1);
+    -moz-appearance: none;
+    -webkit-appearance: none;
+    vertical-align: baseline;
+}
+
+
+
+/* ==========================================================================
+   Block
+   ========================================================================== */
+
+.button.BLOCK {
+    display:block;
+    width:100%;
+}
+
+
+
+/* ==========================================================================
+   Types
+   ========================================================================== */
+
+.button.PRIMARY {
+    color: #fff;
+    background-color: #0780ff;
+    border-color:transparent;
+}
+
+.button.DANGER {
+    color: #fff;
+    background-color: #ed4337;
+    border-color:transparent;
+}
+
+
+
+/* ==========================================================================
+   Sizes
+   ========================================================================== */
+
+.button.TINY {
+    font-size:12px;
+    line-height:14px;
+    padding:4px 10px;
+}
+.button.SMALL {
+    font-size:13px;
+    line-height:16px;
+    padding:5px 13px;
+}
+
+.button.LARGE {
+    font-size:15px;
+    line-height:18px;
+    padding:6px 16px;
+}
+
+.button.BIG {
+    font-size:16px;
+    line-height:18px;
+    padding:8px 24px;
+}
+
+.button.HUGE {
+    font-size:18px;
+    line-height:20px;
+    padding:10px 24px;
+}
+
+.button.MASSIVE {
+    font-size:20px;
+    line-height:22px;
+    padding:12px 30px;
+}
+
+
+
+/* ==========================================================================
+   -moz-focus-inner
+   ========================================================================== */
+
+.button::-moz-focus-inner {
+    border: 0;
+}
+
+
+
+/* ==========================================================================
+   :hover
+   ========================================================================== */
+
+.button:hover {
+    background-color:#f5f5f5;
+    text-decoration:none;
+}
+
+.button.PRIMARY:hover {
+    background-color: #378CDE;
+    background-color: #0074F0;
+}
+
+.button.DANGER:hover {
+    background-color: #D72F23;
+}
+
+
+
+/* ==========================================================================
+   keyboard-focus:focus
+   ========================================================================== */
+
+.button.keyboard-focus:focus {
+    box-shadow: 0 0 1px 3px rgba(0,0,0,.2);
+    outline:none;
+}
+
+.button.PRIMARY.keyboard-focus:focus {
+    box-shadow: 0 0 1px 3px rgba(60, 154, 244, .6);
+}
+
+.button.DANGER.keyboard-focus:focus {
+    box-shadow: 0 0 1px 3px rgba(237, 67, 55, .6);
+}
+
+
+
+/* ==========================================================================
+   :active
+   ========================================================================== */
+
+.button:active {
+    background-image: linear-gradient(rgba(0,0,0,0.06), rgba(0,0,0,0) 60%, rgba(0,0,0,0));
+}
+
+.button.PRIMARY:active {
+    background-image: linear-gradient(rgba(0,0,0,0.2), rgba(0,0,0,0));
+}
+
+.button.DANGER:active {
+    background-image: linear-gradient(rgba(0,0,0,0.2), rgba(0,0,0,0));
+}
+
+
+
+/* ==========================================================================
+   :disabled
+   ========================================================================== */
+
+.button:disabled,
+.button.DISABLED {
+    opacity:.5;
+    cursor:default;
+    background-image:none;
+}
+
+/* Remove hover and active effects */
+
+.button:disabled:hover,
+.button:disabled:active,
+.button.DISABLED:hover,
+.button.DISABLED:active {
+    background-color: #fff;
+    background-image:none;
+}
+
+.button.PRIMARY:disabled:hover,
+.button.PRIMARY:disabled:active,
+.button.PRIMARY.DISABLED:hover,
+.button.PRIMARY.DISABLED:active {
+    background-color: #0780ff;
+    background-image: none;
+}
+
+.button.DANGER:disabled:hover,
+.button.DANGER:disabled:active,
+.button.DANGER.DISABLED:hover,
+.button.DANGER.DISABLED:active {
+    background-color: #ed4337;
+    background-image:none;
+}

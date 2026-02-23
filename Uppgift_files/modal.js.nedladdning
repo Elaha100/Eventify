@@ -1,0 +1,252 @@
+﻿'use strict';
+
+(function () {
+
+    const cmp = LearnPoint.createComponent('modal');
+
+    const Selector = {
+        MODAL: cmp.componentSelector('modal'),
+        CONTENT_CONTAINER: cmp.elementSelector('content-container'),
+        OPEN_BUTTON: cmp.elementSelector('open-button'),
+        CLOSE_BUTTON: cmp.elementSelector('close-button')
+    }
+
+    const ClassName = {
+        FADE_OUT: 'FADE-OUT'
+    }
+
+    const Event = {
+        CLOSED: 'modal.closed',
+    }
+    cmp['Event'] = Event;
+
+    let sourceElement; // The element (button or link) that opened the modal
+
+
+
+    /* =====================================================================
+       Initialize Modals
+       ===================================================================== */
+
+    document.addEventListener('DOMContentLoaded', event => {
+        const modals = document.querySelectorAll(Selector.MODAL);
+
+        // Wrapping helper function
+        function wrap(parent, wrapper) {
+            [...parent.childNodes].forEach(child => wrapper.appendChild(child));
+
+            parent.appendChild(wrapper);
+        }
+
+        for (const modal of modals) {
+
+            // 1. Wrap content in a container element
+            const wrapper = document.createElement('div');
+            wrapper.classList.add('modal__content-container');
+            wrapper.setAttribute('data-element', 'modal.content-container');
+            wrap(modal, wrapper);
+
+            // 2. Add close button
+            const closeButton = Utils.createElementFromHtml(`<input type="button" title="Stäng" class="modal__close-button" data-element="modal.close-button"/>`);
+            wrapper.prepend(closeButton);
+
+            // 3. Add close handler
+            modal.addEventListener('close', event => {
+                LearnPoint.SiteScrolling.Enable();
+            });
+
+            // 4. Add cancel handler
+            modal.addEventListener('cancel', event => {
+                // The browser triggers cancel event on Esc and when that
+                // event is triggered, the browser closes the modal.
+                // But we use a custom handler for Esc.
+                event.preventDefault();
+            });
+        }
+    });
+
+
+
+    /* =====================================================================
+       Click
+       ===================================================================== */
+
+    document.addEventListener('click', function (event) {
+
+        // A - Open Button
+
+        const openButton = event.target.closest(Selector.OPEN_BUTTON);
+        if (openButton) {
+            sourceElement = openButton;
+            const targetModal = findTargetModal(openButton);
+            if (!targetModal) {
+                return;
+            }
+
+            open(targetModal);
+            return;
+        }
+
+
+        // B - Close Button
+
+        const modalCloseButton = event.target.closest(Selector.CLOSE_BUTTON);
+        if (modalCloseButton) {
+            close();
+            return;
+        }
+
+
+        // C - Content Container
+
+        const contentContainer = event.target.closest(Selector.CONTENT_CONTAINER);
+        if (contentContainer) {
+            return;
+        }
+
+
+        // D - Modal
+
+        const modal = event.target.closest(Selector.MODAL);
+        if (modal) {
+
+            close();
+            return;
+        }
+    });
+
+
+
+    /* =====================================================================
+       Esc Key
+       ===================================================================== */
+
+    document.addEventListener('keydown', function (event) {
+        if (event.key === 'Escape' || event.key === 'Esc') {
+            close();
+        }
+    });
+
+
+
+    /* =====================================================================
+       Open
+       ===================================================================== */
+
+    function open(modal) {
+        LearnPoint.SiteScrolling.Disable();
+        modal.showModal();
+    }
+
+
+
+    /* =====================================================================
+       Close
+       ===================================================================== */
+
+    function close() {
+
+        let openModal; // There can be no more than one open modal
+
+        const modals = document.querySelectorAll(Selector.MODAL);
+        for (const modal of modals) {
+            if (modal.matches('[open]')) {
+                openModal = modal;
+                break;
+            }
+        }
+
+        if (!openModal) {
+            return;
+        }
+
+        openModal.addEventListener('animationend', event => {
+
+            openModal.close();
+            openModal.classList.remove(ClassName.FADE_OUT);
+            openModal.scrollTop = 0; // Modal should not preserve scroll between open/close
+
+            setTransformOriginAfterClosing(openModal);
+
+            const closedEvent = new CustomEvent(Event.CLOSED, { bubbles: true, detail: { sourceElement } });
+            openModal.dispatchEvent(closedEvent);
+
+        }, { once: true });
+
+
+        // Run the animation (that will close the modal)
+        setTransformOriginBeforeClosing(openModal);
+        openModal.classList.add(ClassName.FADE_OUT);
+    }
+
+
+
+    /* =====================================================================
+       Set Transform Origin BEFORE Closing
+       ===================================================================== */
+
+    function setTransformOriginBeforeClosing(modal) {
+        if (!modal) {
+            return;
+        }
+
+        const contentContainer = modal.querySelector(Selector.CONTENT_CONTAINER);
+        if (!contentContainer) {
+            return;
+        }
+
+        const { top } = contentContainer.getBoundingClientRect();
+        const transformY = 128 - top;
+        contentContainer.style.transformOrigin = `center ${transformY}px`;
+    }
+
+
+    /* =====================================================================
+       Set Transform Origin AFTER Closing
+       ===================================================================== */
+
+    function setTransformOriginAfterClosing(modal) {
+        if (!modal) {
+            return;
+        }
+
+        const contentContainer = modal.querySelector(Selector.CONTENT_CONTAINER);
+        if (!contentContainer) {
+            return;
+        }
+
+        contentContainer.style.transformOrigin = '';
+    }
+
+
+
+    /* =====================================================================
+       Find Target Modal
+       ===================================================================== */
+
+    function findTargetModal(openButton) {
+        const targetModalId = LearnPoint.getProperty(openButton, 'modal', 'target');
+        if (!targetModalId) {
+            console.log('target modal not specified on button')
+            return null;
+        }
+
+        let targetModal;
+        const modals = document.querySelectorAll(Selector.MODAL);
+        for (const modal of modals) {
+            const modalId = LearnPoint.getProperty(modal, 'modal', 'id');
+            if (modalId === targetModalId) {
+                targetModal = modal;
+                break;
+            }
+        }
+
+        if (!targetModal) {
+            console.log('could not find modal');
+            return null;
+        }
+
+        return targetModal;
+    }
+
+})();

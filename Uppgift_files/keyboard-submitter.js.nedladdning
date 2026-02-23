@@ -1,0 +1,136 @@
+﻿'use strict';
+
+(function () {
+
+
+    var cmp = LearnPoint.createComponent('keyboard-submitter');
+
+
+
+    /* =====================================================================
+	   Selectors
+	   ===================================================================== */
+
+    var Selector = {
+        COMPONENT: cmp.componentSelector(),
+        DEFAULT_BUTTON: cmp.elementSelector('default-button'),
+        ENTER_KEY_SUBMITTER: 'input[type=text], input[type=checkbox], input[type=radio], input[type=tel], input[type=email], input[type=search]'
+    }
+
+
+
+    /* =====================================================================
+	   Init
+	   ===================================================================== */
+
+    document.addEventListener('DOMContentLoaded', function (event) {
+
+        document.addEventListener('focus', function (event) {
+
+            // Target is an element? (could be a document)
+            if (event.target.nodeType !== 1) {
+                return;
+            }
+
+            // Target is an enterkey submitter?
+            if (!event.target.matches(Selector.ENTER_KEY_SUBMITTER)) {
+                return;
+            }
+
+            // Target inside a submitter controller?
+            if (!event.target.closest(Selector.COMPONENT)) {
+                return;
+            }
+
+            AddEnterKeyListener();
+            AddBlurListener();
+
+            console.debug('Listening for Enter key');
+
+        }, true);
+    });
+
+
+
+    /* =====================================================================
+	   Blur Handler
+	   ===================================================================== */
+
+    function BlurHandler() {
+
+        RemoveEnterKeyListener();
+        RemoveBlurListener();
+
+        console.debug('Stopped listening for Enter key');
+    }
+
+
+
+    /* =====================================================================
+	   Enter Key Handler
+	   ===================================================================== */
+
+    function EnterKeyHandler(event) {
+
+        if (event.key !== 'Enter') {
+            return;
+        }
+
+        if (!event.target.matches(Selector.ENTER_KEY_SUBMITTER)) {
+            return;
+        }
+
+        var keyboardSubmitter = event.target.closest(Selector.COMPONENT);
+        if (!keyboardSubmitter) {
+            console.warn('Could not find COMPONENT');
+            return;
+        }
+
+        var defaultButton = keyboardSubmitter.querySelector(Selector.DEFAULT_BUTTON);
+        if (!defaultButton) {
+            console.warn('Could not find DEFAULT_BUTTON');
+            return;
+        }
+
+
+        // Prevent browser from clicking on another input submit
+        event.preventDefault();
+
+
+        // Don't click if button is disabled
+        if (defaultButton.disabled) {
+            console.log('DEFAULT_BUTTON is disabled: ' + Utils.eltos(defaultButton));
+            return;
+        }
+
+
+        // Trigger click
+        console.log('Will click on ' + Utils.eltos(defaultButton));
+        defaultButton.focus();
+        defaultButton.click();
+    }
+
+
+
+    /* =====================================================================
+	   Listeners on/off
+	   ===================================================================== */
+
+    function AddEnterKeyListener() {
+        document.addEventListener('keydown', EnterKeyHandler);
+    }
+
+    function RemoveEnterKeyListener() {
+        document.removeEventListener('keydown', EnterKeyHandler);
+    }
+
+    function AddBlurListener() {
+        document.addEventListener('blur', BlurHandler, true);
+    }
+
+    function RemoveBlurListener() {
+        document.removeEventListener('blur', BlurHandler, true)
+    }
+
+
+})();

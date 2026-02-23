@@ -1,0 +1,816 @@
+﻿'use strict';
+
+(function () {
+
+    const cmp = LearnPoint.createComponent('comments-widget');
+
+    const ClassName = {
+        OPEN: 'comments-widget--open',
+        CLOSE: 'comments-widget--close',
+        ACTIONS_SLIDE_OUT: 'comments-widget__post-header-actions--actions-slide-out',
+        ACTIONS_PANEL_OPEN: 'comments-widget__post-header-actions-panel--open',
+        DELETED: 'comments-widget__post--deleted',
+        DISABLED: 'DISABLED',
+        DROPZONE_ACTIVE: 'DROPZONE-ACTIVE',
+        FIXED_HEADER: 'FIXED-HEADER'
+    }
+    cmp['ClassName'] = ClassName;
+
+
+    const Selector = {
+        COMMENTS_WIDGET: cmp.componentSelector(),
+        UPDATE_PANEL: cmp.elementSelector('update-panel'),
+        LOAD_COMMENTS_BUTTON: cmp.elementSelector('load-comments-button'),
+        RELOAD_COMMENTS_BUTTON: cmp.elementSelector('reload-comments-button'),
+        ACTIONS_PANEL: cmp.elementSelector('actions-panel'),
+        ACTIONS_ICON: cmp.elementSelector('actions-icon'),
+        ACTIONS: cmp.elementSelector('actions'),
+        NEW_POST_INPUT: cmp.elementSelector('new-post-input'),
+        NEW_POST_BUTTON: cmp.elementSelector('new-post-button'),
+        NEW_POST_FORM: cmp.elementSelector('new-post-form'),
+        FILE_INPUT: cmp.elementSelector('file-input'),
+        SELECT_FILE_BUTTON: cmp.elementSelector('select-file-button'),
+        POST_FILE_BUTTON: cmp.elementSelector('post-file-button'),
+        UPLOAD_FILE_HANDLER_URL_STORE: cmp.elementSelector('upload-file-handler-url-store'),
+        PROGRESS_BAR_CONTAINER: cmp.elementSelector('progress-bar-container'),
+        DROPZONE: cmp.elementSelector('dropzone'),
+        AUDIO_AND_VIDEO: `${cmp.elementSelector('post-content')} audio, ${cmp.elementSelector('post-content')} video`,
+        MEDIA_ELEMENT: `${cmp.elementSelector('post-content')} audio, ${cmp.elementSelector('post-content')} video, ${cmp.elementSelector('post-content')} img`,
+        FAILED_MEDIA_ELEMENT: `${cmp.elementSelector('post-content')} audio.ERROR, ${cmp.elementSelector('post-content')} video.ERROR, ${cmp.elementSelector('post-content')} img.ERROR`,
+    //    NOTIFICATION_SOURCE_ID_STORE: `${cmp.componentSelector()} ${LearnPoint.AscxNotificationMarker.Selector.MARKER}` // Might exist several markers, select the one inside the comments
+    }
+    cmp['Selector'] = Selector;
+
+
+    const Event = {
+        COMMENTS_OPEN: 'commentsWidget_CommentsOpen',
+        COMMENTS_UPDATED: 'commentsWidget_CommentsUpdated',
+    }
+    cmp['Event'] = Event;
+
+    const Param = {
+        DISPOSITION: 'Disposition'
+    }
+
+    const ParamValue = {
+        ATTACHMENT: 'Attachment'
+    }
+
+    const AUTOLOAD_NEW_COMMENTS_INTERVAL_SECONDS = 30;
+    const IS_SCROLLED_TO_BOTTOM_PADDING_PIXELS = 64;
+
+    const audioAndVideoIntersectionObserver = new IntersectionObserver(audioAndVideoIntersects);
+
+
+    let fileUploadHandlerUrl = null;
+    let fileUploadContraints = null;
+    let notificationSourceId = null;
+    let autoloadTimeout = null;
+
+
+
+    /* =====================================================================
+       Open Comments
+       ===================================================================== */
+
+    function OpenComments(commentsWidget) {
+
+        if (!commentsWidget.matches(Selector.COMMENTS_WIDGET)) {
+            console.log('Could not open ' + Utils.eltos(commentsWidget) + ' beacuse it does not match Selector.COMMENTS_WIDGET');
+            return;
+        }
+
+        if (IsOpen(commentsWidget)) {
+            console.log(Utils.eltos(commentsWidget) + ' already open');
+            return;
+        }
+
+        var discussionWidget_LoadCommentsButton_Element = commentsWidget.querySelector(Selector.LOAD_COMMENTS_BUTTON);
+        if (!discussionWidget_LoadCommentsButton_Element) {
+            return;
+        }
+
+        var unique_id = discussionWidget_LoadCommentsButton_Element.getAttribute('data-unique-id');
+        LearnPoint.DopostbackWrapper.DoPostBack(unique_id, '');
+    }
+
+    cmp['OpenComments'] = OpenComments;
+
+
+
+    /* =====================================================================	   
+       IsOpen
+       ===================================================================== */
+
+    function IsOpen(commentswidget) {
+        return commentswidget.classList.contains(ClassName.OPEN);
+    }
+
+    cmp['IsOpen'] = IsOpen;
+
+
+
+    /* =====================================================================
+       Close Comment widget
+       ===================================================================== */
+
+    function CloseComments(commentswidget) {
+        commentswidget.classList.remove(ClassName.OPEN);
+        commentswidget.classList.add(ClassName.CLOSE);
+    }
+
+    cmp['CloseComments'] = CloseComments;
+
+
+
+    /* =====================================================================
+       Show / Hide Actions Menu (Delete Comment)
+       ===================================================================== */
+
+    document.addEventListener('click', function (event) {
+
+        var commentsAction_Panel = event.target.closest(Selector.ACTIONS_PANEL);
+        if (!commentsAction_Panel) {
+            return;
+        }
+
+        var commentActions_Content = commentsAction_Panel.querySelector(Selector.ACTIONS);
+
+        if (event.target.matches(Selector.ACTIONS_ICON)) {
+            if (!commentActions_Content.classList.contains(ClassName.ACTIONS_SLIDE_OUT)) {
+                commentsAction_Panel.classList.add(ClassName.ACTIONS_PANEL_OPEN);
+                commentActions_Content.classList.add(ClassName.ACTIONS_SLIDE_OUT);
+            } else {
+                commentActions_Content.classList.remove(ClassName.ACTIONS_SLIDE_OUT);
+                commentsAction_Panel.classList.remove(ClassName.ACTIONS_PANEL_OPEN);
+            }
+        }
+    });
+
+
+
+    /* =====================================================================
+       Initialize
+       ===================================================================== */
+
+    document.addEventListener('DOMContentLoaded', async function (event) {
+
+        updateSendButtonState();
+
+        Sys.WebForms.PageRequestManager.getInstance().add_endRequest(Panel_Updated);
+
+        // notificationSourceId
+        const notificationSourceIdStore = document.querySelector(`${cmp.componentSelector()} ${LearnPoint.AscxNotificationMarker.Selector.MARKER}`);
+        if (notificationSourceIdStore) {
+            notificationSourceId = LearnPoint.getProperty(notificationSourceIdStore, LearnPoint.AscxNotificationMarker.name, LearnPoint.AscxNotificationMarker.Property.NOTIFICATION_SOURCE_ID);
+        }
+
+        // fileUploadHandlerUrl
+        const uploadFileHandlerUrlStore = document.querySelector(Selector.UPLOAD_FILE_HANDLER_URL_STORE);
+        if (!uploadFileHandlerUrlStore) {
+            return;
+        }
+        fileUploadHandlerUrl = uploadFileHandlerUrlStore.value;
+
+        try {
+
+            // fileUploadContraints
+            fileUploadContraints = await LearnPoint.FileHandler.getUploadConstraints(fileUploadHandlerUrl);
+
+            // fileInput.accept & fileInput.multiple
+            const fileInput = document.querySelector(Selector.FILE_INPUT);
+            fileInput.accept = fileUploadContraints.validContentTypes.join(', ');
+            fileInput.multiple = fileUploadContraints.acceptMultipleFiles;
+
+
+        } catch (error) {
+
+            // Keep the page functional for now.
+            //
+            // If the request to `getUploadConstraints` generated the error,
+            // it will likely generate the same error when the user actually
+            // tries to upload a file. When (if) that happens, this error
+            // will be thrown again and handled in the upload event handler.
+        }
+
+    });
+
+
+
+    /* =====================================================================
+       Ajax Panel Updated
+       ===================================================================== */
+
+    function Panel_Updated(sender, args) {
+
+        updateSendButtonState();
+
+        resetAutoloadTimeout();
+
+        const updatePanels = LearnPoint.Main.getUpdatePanels();
+
+        for (const updatePanel of updatePanels) {
+
+            if (!updatePanel.matches(Selector.UPDATE_PANEL)) {
+                continue;
+            }
+
+            const postbackElement = LearnPoint.Main.getPostBackElement();
+            if (!postbackElement) {
+                continue;
+            }
+
+            if (!postbackElement.matches(Selector.POST_FILE_BUTTON) && !postbackElement.matches(Selector.NEW_POST_BUTTON) && !postbackElement.matches(Selector.RELOAD_COMMENTS_BUTTON)) {
+                continue;
+            }
+
+            var newPostForm = updatePanel.querySelector(Selector.NEW_POST_FORM);
+            if (!newPostForm) {
+                continue;
+            }
+
+            if (isElementBelowTheFold(newPostForm)) {
+                newPostForm.scrollIntoView(false);
+            }
+
+            var newPostInput = updatePanel.querySelector(Selector.NEW_POST_INPUT);
+            if (newPostInput) {
+                newPostInput.focus();
+                break;
+            }
+        }
+    }
+
+
+
+    /* =====================================================================
+       Autoload Timeout
+       ===================================================================== */
+
+    document.addEventListener('DOMContentLoaded', resetAutoloadTimeout);
+
+    function resetAutoloadTimeout() {
+        removeAutoloadTimeout();
+        autoloadTimeout = setTimeout(loadNewComments, AUTOLOAD_NEW_COMMENTS_INTERVAL_SECONDS * 1000);
+    }
+
+    function removeAutoloadTimeout() {
+        clearTimeout(autoloadTimeout);
+    }
+
+
+
+    /* =====================================================================
+       Load New Comments
+       ===================================================================== */
+
+    async function loadNewComments() {
+
+        const loadNewCommentsButton = document.querySelector(Selector.RELOAD_COMMENTS_BUTTON);
+        if (!loadNewCommentsButton) {
+            console.debug('prevented fetching new comments - no comments reload button found');
+            return;
+        }
+
+        const newPostInput = document.querySelector(Selector.NEW_POST_INPUT);
+        if (!newPostInput) {
+            console.debug('prevented fetching new comments - no comment input found');
+            return;
+        }
+
+        if (newPostInput.value) {
+            console.debug('prevented fetching new comments - user is typing');
+            resetAutoloadTimeout();
+            return;
+        }
+
+        if (document.visibilityState && document.visibilityState === 'hidden') {
+            console.debug('prevented fetching new comments - page hidden');
+            resetAutoloadTimeout();
+            return;
+        }
+
+        if (navigator.onLine === false) {
+            console.debug('prevented fetching new comments - browser is offline');
+            resetAutoloadTimeout();
+            return;
+        }
+
+        if (!isScrolledToBottom()) {
+            console.debug('prevented fetching new comments - not scrolled to bottom');
+            resetAutoloadTimeout();
+            return;
+        }
+
+        if (!Utils.isUserActive()) {
+            console.debug('prevented fetching new comments - user inactive');
+            resetAutoloadTimeout();
+            return;
+        }
+
+        if (Sys.WebForms.PageRequestManager.getInstance().get_isInAsyncPostBack()) {
+            console.debug('prevented fetching new comments - ajax request already running');
+            resetAutoloadTimeout();
+            return;
+        }
+
+        const newInSource = await Utils.newInNotificationSource(notificationSourceId);
+        if (!newInSource) {
+            console.debug('prevented fetching new comments - nothing new in notification source');
+            resetAutoloadTimeout();
+            return;
+        }
+
+        console.log('fetching new comments');
+
+        loadNewCommentsButton.click();
+    }
+
+
+
+    /* =====================================================================
+       Is Scrolled To Bottom
+       ===================================================================== */
+
+    function isScrolledToBottom() {
+
+        const scrollDistanceToBottom =
+            document.documentElement.scrollHeight -
+            document.documentElement.scrollTop -
+            document.documentElement.clientHeight;
+
+        return scrollDistanceToBottom < IS_SCROLLED_TO_BOTTOM_PADDING_PIXELS;
+    }
+
+
+
+    /* =====================================================================
+       Is Element Below The Fold
+       ===================================================================== */
+
+    function isElementBelowTheFold(element) {
+        return element.getBoundingClientRect().bottom > document.documentElement.clientHeight;
+    }
+
+
+
+    /* =====================================================================
+      Send Button State
+      ===================================================================== */
+
+    function updateSendButtonState() {
+        const addMessageForm = document.querySelector(Selector.NEW_POST_FORM);
+        if (!addMessageForm) {
+            return;
+        }
+
+        const addMessageTextbox = addMessageForm.querySelector(Selector.NEW_POST_INPUT)
+        if (!addMessageTextbox) {
+            return;
+        }
+
+        const sendMessageButton = addMessageForm.querySelector(Selector.NEW_POST_BUTTON)
+        if (!sendMessageButton) {
+            return;
+        }
+
+        const messageTextboxValue = addMessageTextbox.value;
+
+        if (messageTextboxValue) {
+            sendMessageButton.disabled = false;
+        } else {
+            sendMessageButton.disabled = true;
+        }
+    }
+
+    //  ------------------------------------------------------------------------
+
+    document.addEventListener('input', event => {
+        if (!event.target.matches(Selector.NEW_POST_INPUT)) {
+            return;
+        }
+
+        updateSendButtonState();
+    });
+
+    //  ------------------------------------------------------------------------
+
+    window.addEventListener("pageshow", updateSendButtonState)
+
+
+
+    /* =====================================================================
+       Send Comment on Enter key
+       ===================================================================== */
+
+    function isTouchDevice() {
+        return 'ontouchstart' in window;
+    }
+
+    //  ------------------------------------------------------------------------
+
+    document.addEventListener('keydown', event => {
+
+        if (event.key !== 'Enter') {
+            return;
+        }
+
+        // Do not send message on Enter when using virtual keyboard,
+        // because in that case the real send button is easy to tap,
+        // and we cannot dected shiftKey on virtual keyboard and there
+        // have to be a way to create new lines.
+        if (isTouchDevice()) {
+            return;
+        }
+
+        if (!event.target.matches(Selector.NEW_POST_INPUT)) {
+            return;
+        }
+
+        if (event.shiftKey) {
+            return;
+        }
+
+        event.preventDefault();
+
+        const newPostButtonButton = document.querySelector(Selector.NEW_POST_BUTTON);
+        if (!newPostButtonButton) {
+            return;
+        }
+
+        if (!event.target.value) {
+            return;
+        }
+
+        if (event.repeat) {
+            return;
+        }
+
+        newPostButtonButton.focus();
+        newPostButtonButton.click();
+    });
+
+
+
+    /* =====================================================================
+       File Input Change
+       ===================================================================== */
+
+    document.addEventListener('change', async event => {
+        if (!event.target.matches(Selector.FILE_INPUT)) {
+            return;
+        }
+
+        if (event.target.files.length < 1) {
+            console.log('ERROR: No file added to FILE_INPUT');
+            return;
+        }
+
+        const filesToUpload = [];
+
+        for (const file of event.target.files) {
+            if (LearnPoint.FileHandler.hasProgressBar(file)) {
+                continue;
+            }
+
+            addProgressBar(file);
+            filesToUpload.push(file);
+        }
+
+        for (const file of filesToUpload) {
+            try {
+                await LearnPoint.FileHandler.uploadFile(file, fileUploadHandlerUrl, uploadProgressHandler);
+                uploadSuccessHandler(file);
+            } catch (error) {
+                uploadErrorHandler(error, file);
+            }
+        }
+    });
+
+
+
+    /* =====================================================================
+      Drag and Drop File
+      ===================================================================== */
+
+    document.addEventListener('DOMContentLoaded', event => {
+
+        const dropzone = document.querySelector(Selector.DROPZONE);
+        if (!dropzone) {
+            return;
+        }
+
+        let dragoverTimeout = null;
+        let dragoverTimeoutDelay = 500;
+
+
+        document.addEventListener('dragover', event => {
+
+            event.preventDefault();
+
+            if (!event.dataTransfer.types.includes('Files')) {
+                return;
+            }
+
+            const withinDropzone = event.target.closest(Selector.DROPZONE);
+            if (!withinDropzone) {
+                return;
+            }
+
+            dropzone.classList.add(ClassName.DROPZONE_ACTIVE);
+
+            if ((dropzone.clientHeight > document.documentElement.clientHeight) && !isTopOfElementVisible(dropzone)) {
+                dropzone.classList.add(ClassName.FIXED_HEADER);
+            } else {
+                dropzone.classList.remove(ClassName.FIXED_HEADER);
+            }
+
+            if (dragoverTimeout) {
+                clearTimeout(dragoverTimeout);
+            }
+
+            dragoverTimeout = setTimeout(() => {
+                dropzone.classList.remove(ClassName.DROPZONE_ACTIVE);
+                dropzone.classList.remove(ClassName.FIXED_HEADER);
+            }, dragoverTimeoutDelay);
+        });
+
+
+        document.addEventListener('drop', async event => {
+
+            event.preventDefault();
+
+            const withinDropzone = event.target.closest(Selector.DROPZONE);
+            if (!withinDropzone) {
+                console.log('File dropped outsize dropzone');
+                return;
+            }
+
+            if (event.dataTransfer.files.length < 1) {
+                console.log('ERROR: No files dropped');
+                return;
+            }
+
+            const filesToUpload = [];
+
+            for (const file of event.dataTransfer.files) {
+                if (LearnPoint.FileHandler.hasProgressBar(file)) {
+                    continue;
+                }
+
+                addProgressBar(file);
+                filesToUpload.push(file);
+            }
+
+            for (const file of filesToUpload) {
+
+                try {
+                    await LearnPoint.FileHandler.uploadFile(file, fileUploadHandlerUrl, uploadProgressHandler);
+                    uploadSuccessHandler(file);
+                } catch (error) {
+                    uploadErrorHandler(error, file);
+                }
+            }
+        });
+
+
+    });
+
+
+
+    /* =====================================================================
+       Upload Handlers
+       ===================================================================== */
+
+    function uploadProgressHandler(progress, file) {
+        LearnPoint.FileHandler.setProgressBarValue(file, progress);
+    }
+
+    //  ------------------------------------------------------------------------
+
+    function uploadSuccessHandler(file) {
+        uploadDoneHandler(file);
+    }
+
+    //  ------------------------------------------------------------------------
+
+    function uploadErrorHandler(error, file) {
+        LearnPoint.FileHandler.setProgressBarError(file);
+        LearnPoint.FileHandler.showFlashMessageError(error);
+
+        uploadDoneHandler(file);
+    }
+
+    //  ------------------------------------------------------------------------
+
+    function uploadDoneHandler(file) {
+
+        LearnPoint.FileHandler.setProgressBarDone(file);
+
+        if (LearnPoint.FileHandler.anyProgressBarsInProgress()) {
+            return;
+        }
+
+        if (navigator.onLine === false) {
+
+            // If no internet connection, we cannot update the
+            // page through click on postFileButton. We have
+            // to remove the spinners manually.
+
+            setTimeout(LearnPoint.FileHandler.removeAllProgressBars, 4000);
+            return;
+        }
+
+        const fileInput = document.querySelector(Selector.FILE_INPUT);
+        if (fileInput) {
+            fileInput.value = null;
+        }
+
+        const postFileButton = document.querySelector(Selector.POST_FILE_BUTTON);
+        if (!postFileButton) {
+            return;
+        }
+
+        // Give the user some time to realize
+        // that the upload was successful.
+
+        setTimeout(() => {
+            postFileButton.click();
+        }, 500);
+    }
+
+
+
+    /* =====================================================================
+       Add Progress Bar
+       ===================================================================== */
+
+    function addProgressBar(file) {
+        const progressBarContainer = document.querySelector(Selector.PROGRESS_BAR_CONTAINER);
+        if (!progressBarContainer) {
+            return;
+        }
+
+        const progressBar = LearnPoint.FileHandler.createProgressBar(file);
+        if (!progressBar) {
+            return;
+        }
+
+        progressBarContainer.append(progressBar);
+    }
+
+
+
+    /* =====================================================================
+       Select File Button Click
+       ===================================================================== */
+
+    document.addEventListener('click', event => {
+        const selectFileButton = event.target.closest(Selector.SELECT_FILE_BUTTON);
+        if (!selectFileButton) {
+            return;
+        }
+
+        const fileInput = document.querySelector(Selector.FILE_INPUT);
+        if (!fileInput) {
+            return;
+        }
+
+        fileInput.click();
+    });
+
+
+
+    /* =====================================================================
+      Replace failed media with attachment
+      ===================================================================== */
+
+    document.addEventListener('error', event => {
+
+        replaceFailedMedia(event.target);
+
+    }, true);
+
+    //  ------------------------------------------------------------------------
+
+    window.addEventListener('load', event => {
+
+        // The error event might have been triggered on images
+        // before the listener was registered (above).
+        //
+        // This will not happen to video or audio, because they
+        // are loaded lazily by this script. When they load, the
+        // error listener will be registered.
+        //
+        // But images might load before the listener is registered.
+        // To solve this, there is an inline error handler on the
+        // img tags. That handler adds an ERROR class that we can
+        // query on.
+
+        const failedMediaElements = document.querySelectorAll(Selector.FAILED_MEDIA_ELEMENT);
+
+        for (const failedMediaElement of failedMediaElements) {
+
+            replaceFailedMedia(failedMediaElement);
+        }
+    });
+
+    //  ------------------------------------------------------------------------
+
+    function replaceFailedMedia(mediaElement) {
+
+        if (!mediaElement.matches(Selector.MEDIA_ELEMENT)) {
+            return;
+        }
+
+        console.log(`Replacing failed media for ${Utils.eltos(mediaElement)}.`);
+
+        const url = Utils.urlSetParam(mediaElement.src, Param.DISPOSITION, ParamValue.ATTACHMENT);
+        const name = mediaElement.title;
+        const attachmentElement = createMessageAttachmentElement(url, name);
+
+        mediaElement.parentElement.replaceWith(attachmentElement);
+    }
+
+    //  ------------------------------------------------------------------------
+
+    function createMessageAttachmentElement(url, name) {
+        const fileExtension = Utils.getFileExtension(name);
+
+        const html = `<div class="comments-widget__message-attachment">
+                          <a title="${name}" class="attachment-link ${fileExtension}" download="${name}" href="${url}">${name}</a>
+                      </div>`;
+
+        return Utils.createElementFromHtml(html);
+    }
+
+
+
+    /* =====================================================================
+       Set preload = metadata when audio/video intersecting
+       ===================================================================== */
+
+    window.addEventListener('load', () => startObservingAudioAndVideo());
+
+
+    //  ------------------------------------------------------------------------
+
+    Sys.WebForms.PageRequestManager.getInstance().add_endRequest((sender, args) => {
+        const updatePanels = LearnPoint.Main.getUpdatePanels();
+
+        for (const updatePanel of updatePanels) {
+            startObservingAudioAndVideo(updatePanel)
+        }
+    });
+
+
+    //  ------------------------------------------------------------------------
+
+    function startObservingAudioAndVideo(scope = document) {
+        const audioAndVideoElements = scope.querySelectorAll(Selector.AUDIO_AND_VIDEO);
+
+        for (const audioAndVideoElement of audioAndVideoElements) {
+            audioAndVideoIntersectionObserver.observe(audioAndVideoElement);
+        }
+
+        console.debug(`Started observing ${audioAndVideoElements.length} audio and video elements.`);
+    }
+
+
+    //  ------------------------------------------------------------------------
+
+    function audioAndVideoIntersects(entries, observer) {
+        entries.forEach(async entry => {
+            if (!entry.isIntersecting) {
+                return;
+            }
+
+            if (!entry.target.matches(Selector.AUDIO_AND_VIDEO)) {
+                return;
+            }
+
+            if (entry.target.preload && entry.target.preload === 'none') {
+                entry.target.preload = 'metadata';
+                console.debug(`Set preload metadata on ${Utils.eltos(entry.target)}.`);
+            }
+
+            audioAndVideoIntersectionObserver.unobserve(entry.target);
+        });
+    }
+
+    //  ------------------------------------------------------------------------
+
+    function isTopOfElementVisible(element) {
+        if (!element) {
+            return;
+        }
+
+        const elementRect = element.getBoundingClientRect();
+        const elementTop = elementRect.top;
+        const viewportHeight = window.innerHeight;
+
+        return elementTop >= 0 && elementTop <= viewportHeight;
+    }
+
+
+})();

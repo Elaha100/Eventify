@@ -1,0 +1,20 @@
+/* ==========================================================================
+   No Content
+   ========================================================================== */
+
+.no-content {
+    display: block;
+    padding: 32px;
+    max-width: 320px;
+    margin: 0 auto;
+    background-color: rgba(0,0,0,.024);
+    border-radius: 16px;
+    text-align: center;
+    font-size: 16px;
+    line-height: 1.4;
+}
+
+.is-mobile .no-content {
+    max-width: unset;
+    margin: 0 16px;
+}

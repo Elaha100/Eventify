@@ -1,0 +1,26 @@
+﻿'use strict';
+
+(function () {
+
+    const cmp = LearnPoint.createComponent('autofocus');
+
+    const Selector = {
+        AUTOFOCUS: cmp.elementSelector('autofocus')
+    }
+
+    document.addEventListener('DOMContentLoaded', () => {
+         // Select only the first, there can be only one
+        const autofocusElement = document.querySelector(Selector.AUTOFOCUS);
+        if (!autofocusElement) {
+            return;
+        }
+
+        autofocusElement.focus();
+
+        // Put cursor at end
+        const autofocusElementValue = autofocusElement.value;
+        autofocusElement.value = "";
+        autofocusElement.value = autofocusElementValue;
+    });
+
+})();

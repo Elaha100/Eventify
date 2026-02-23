@@ -1,0 +1,35 @@
+/* =====================================================================
+
+	__doPostBack in MS Ajax is recursively accessing 'caller' to travel up
+    in the callstack, but in strict mode this is forbidden:
+
+    https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Function/caller
+    https://mnaoumov.wordpress.com/2016/02/12/wtf-microsoftajax-js-vs-use-strict-vs-firefox-vs-ie/
+    
+
+    Solution:
+    1) This module do NOT have 'use strict'
+    2) _doPostBack is wrapped in a setTimeout to create a new callstack
+
+	===================================================================== */
+
+(function () {
+
+
+    var cmp = LearnPoint.createComponent('dopostback-wrapper');
+
+
+
+    /* =====================================================================
+	   Do PostBack
+	   ===================================================================== */
+
+    function DoPostBack(x, y) {
+
+        window.setTimeout(function () { __doPostBack(x, y); }, 0);
+    }
+
+    cmp['DoPostBack'] = DoPostBack;
+
+
+})();

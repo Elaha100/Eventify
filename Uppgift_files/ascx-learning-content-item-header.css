@@ -1,0 +1,237 @@
+/* ==========================================================================
+   Learning Content Item Header
+   ========================================================================== */
+
+.ascx-learning-content-item-header {
+
+}
+
+
+/* ==========================================================================
+   Status Container
+   ========================================================================== */
+
+.ascx-learning-content-item-header__status-container {
+    position: absolute;
+    top: 12px;
+    right: 12px;
+    /*flex-shrink: 0;*/
+}
+
+
+
+/* ==========================================================================
+   Status 
+   ========================================================================== */
+
+.ascx-learning-content-item-header__status {
+    display: flex;
+    align-items: center;
+    margin: 0 0 32px 16px;
+    justify-content: flex-end;
+}
+
+
+
+/* ==========================================================================
+   Status Text
+   ========================================================================== */
+
+.ascx-learning-content-item-header__status-text {
+    font-size: 18px;
+    font-weight: 600;
+}
+
+.is-mobile .ascx-learning-content-item-header__status-text {
+    font-size: 16px;
+}
+
+
+
+/* ==========================================================================
+   Status Text Select
+   ========================================================================== */
+
+.ascx-learning-content-item-header__status-text-select {
+    cursor: pointer;
+    font-size: 18px;
+    font-weight: 600;
+    color: inherit;
+    display: inline-block;
+    margin: 0;
+    border-color: transparent;
+    border: 0;
+    background-color: #fff;
+    background-image: url('../../../Images/fa/angle-down_14_5_000000.png');
+    background-repeat: no-repeat;
+    background-position: right 0px top 8px;
+    background-size: 18px 18px;
+    border-radius: 3px;
+    font-family: inherit;
+    padding: 3px 20px 3px 6px;
+    outline: none;
+    -webkit-appearance: none;
+    -moz-appearance: none;
+    vertical-align: baseline;
+}
+
+.ascx-learning-content-item-header__status-text-select::-ms-expand {
+    display: none;
+}
+
+.ascx-learning-content-item-header__status-text-select:-moz-focusring {
+    color: transparent;
+    text-shadow: 0 0 0 #000;
+}
+
+.ascx-learning-content-item-header__status-text-select option {
+    font-family: inherit;
+    font-size: 14px;
+    font-weight: normal;
+}
+
+.ascx-learning-content-item-header__status-text-select:focus {
+    outline: 0;
+}
+
+
+
+/* ==========================================================================
+   Status Icon
+   ========================================================================== */
+
+.ascx-learning-content-item-header__status-icon {
+    display: block;
+    width: 32px;
+    height: 32px;
+    margin-left: 8px;
+}
+
+.is-mobile .ascx-learning-content-item-header__status-icon {
+    width: 28px;
+    height: 28px;
+}
+
+
+
+/* ==========================================================================
+   Title
+   ========================================================================== */
+
+.ascx-learning-content-item-header__title {
+    font-weight: bold;
+    font-size: 32px;
+    line-height: 1;
+    display: block;
+    margin: 24px 0 24px;
+    margin: 16px 0 4px;
+    text-align: center;
+}
+
+.is-mobile .ascx-learning-content-item-header__title {
+    font-size: 24px;
+}
+
+
+
+/* ==========================================================================
+   Meta
+   ========================================================================== */
+
+.ascx-learning-content-item-header__meta {
+    margin-bottom: 8px;
+    display: flex;
+    align-items: center;
+    column-gap: 6px;
+    justify-content: center;
+    flex-wrap: wrap;
+}
+
+
+
+/* ==========================================================================
+   Meta Container
+   ========================================================================== */
+
+.ascx-learning-content-item-header__meta-container {
+    flex: 1;
+    font-size: 13px;
+    line-height: 16px;
+    color: #888;
+    margin:8px 0 16px;
+    text-align: center;
+}
+
+
+
+/* ==========================================================================
+   Location
+   ========================================================================== */
+
+.ascx-learning-content-item-header__meta-location {
+    word-break: break-all;
+}
+
+.ascx-learning-content-item-header__meta-location a {
+    word-break: break-all;
+    color: inherit;
+}
+
+
+
+/* ==========================================================================
+   Tabs
+   ========================================================================== */
+
+.ascx-learning-content-item-header__tabs {
+    display: flex;
+    justify-content: center;
+    margin-bottom: 24px;
+    margin-top: 20px;
+}
+
+
+
+/* ==========================================================================
+   Tab Items
+   ========================================================================== */
+
+.ascx-learning-content-item-header__tab-items {
+    display: flex;
+    align-items: center;
+}
+
+
+
+/* ==========================================================================
+   Tab Item
+   ========================================================================== */
+
+.ascx-learning-content-item-header__tab-item {
+    flex: 0 0 auto;
+    min-width: 92px;
+    text-align: center;
+    cursor: pointer;
+    padding: 4px 20px;
+    color: #444;
+    border-radius: 4px 0 0 4px;
+    border: 1px solid #777;
+}
+
+.ascx-learning-content-item-header__tab-item:first-child {
+    border-right: 0;
+}
+
+.ascx-learning-content-item-header__tab-item:last-child {
+    border-radius: 0 4px 4px 0;
+    border-left: 0;
+}
+
+.ascx-learning-content-item-header__tab-item:hover {
+    text-decoration: none;
+}
+
+.ascx-learning-content-item-header__tab-item.SELECTED {
+    background-color: #777;
+    color: #fff;
+}

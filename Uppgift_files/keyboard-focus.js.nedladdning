@@ -1,0 +1,94 @@
+'use strict';
+
+(function () {
+
+
+    var cmp = LearnPoint.createComponent('keyboard-focus');
+    
+
+
+    /* =====================================================================
+       lastInputWasKeyboard
+       ===================================================================== */
+
+    var lastInputWasKeyboard = false;
+
+
+
+    /* =====================================================================
+       Class Names
+       ===================================================================== */
+
+    var ClassName = {
+        KEYBOARD_FOCUS: 'keyboard-focus'
+    }
+
+
+
+    /* =====================================================================
+       Keep track if last input was keyboard
+       ===================================================================== */
+
+    document.addEventListener('mousedown', function (event) {
+
+        lastInputWasKeyboard = false;
+
+    });
+
+    document.addEventListener('touchstart', function (event) {
+
+        lastInputWasKeyboard = false;
+
+    });
+
+    document.addEventListener('keydown', function (event) {
+
+        lastInputWasKeyboard = true;
+
+    });
+
+
+
+    /* =====================================================================
+       Add KEYBOARD_FOCUS class on focus
+       ===================================================================== */
+
+    document.addEventListener('focus', function (event) {
+
+        var target = event.target;
+        if (target.nodeType !== 1) {
+            return;
+        }
+        
+        console.debug(Utils.eltos(target) + ' received focus');
+        
+        if (!lastInputWasKeyboard) {
+
+            if (target.classList.contains(ClassName.KEYBOARD_FOCUS)) {
+
+                target.classList.remove(ClassName.KEYBOARD_FOCUS);
+                console.debug('Removed KEYBOARD_FOCUS from ' + Utils.eltos(target));
+            }
+            return;
+        }
+        
+        if (target.classList.contains(ClassName.KEYBOARD_FOCUS)) {
+            return;
+        }
+        
+        target.classList.add(ClassName.KEYBOARD_FOCUS);
+
+        target.addEventListener('blur', function blurhandler(event) {
+
+            target.classList.remove(ClassName.KEYBOARD_FOCUS);
+            console.debug('Removed KEYBOARD_FOCUS class from ' + Utils.eltos(event.target) + ' because it lost focus');
+            target.removeEventListener('blur', blurhandler);
+        });
+        
+        console.debug('Added KEYBOARD_FOCUS class to ' + Utils.eltos(target));
+        
+    }, true);
+
+
+
+})();

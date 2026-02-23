@@ -1,0 +1,377 @@
+/* ==========================================================================
+   Attachment Link
+   ========================================================================== */
+
+.attachment-link {
+    display: inline-flex;
+    align-items: center;
+    gap: .6em;
+    color: #000;
+    text-decoration: none;
+    overflow-wrap: anywhere;
+    line-height: 1.2;
+    background-color: rgba(0, 0, 0, .03);
+    border: 1px solid rgba(0, 0, 0, .1);
+    border-radius: .9em;
+    padding: .6em 1.1em .6em .6em;
+}
+
+.attachment-link:hover {
+    text-decoration: none;
+    background-color: rgba(0, 0, 0, .05);
+}
+
+
+
+/* ==========================================================================
+   Sizes
+   ========================================================================== */
+
+.attachment-link.X-SMALL {
+    gap: .5em;
+    border-radius: .7em;
+    padding: .4em .8em .4em .4em;
+}
+
+.attachment-link.SMALL {
+    gap: .5em;
+    border-radius: .7em;
+    padding: .5em .9em .5em .5em;
+}
+
+
+
+/* ==========================================================================
+   Naked
+   ========================================================================== */
+
+.attachment-link.NAKED {
+    border: none;
+    background-color: transparent;
+    padding: 0;
+}
+
+.attachment-link.NAKED:hover {
+    text-decoration: underline;
+}
+
+
+
+/* ==========================================================================
+   Attachment Icon
+   ========================================================================== */
+
+.attachment-link::before {
+    content: '';
+    display: block;
+    flex-shrink: 0;
+    width: 2.3em;
+    height: 2.3em;
+    border-radius: .5em;
+    background-size: contain;
+    background-repeat: no-repeat;
+    background-position: center;
+    background-image: var(--file-icons__background-image__default);
+    background-color: var(--file-icons__background-color__default);
+}
+
+.attachment-link.X-SMALL::before {
+    width: 1.5em;
+    height: 1.5em;
+    border-radius: .3em;
+}
+
+.attachment-link.SMALL::before {
+    width: 1.7em;
+    height: 1.7em;
+    border-radius: .3em;
+}
+
+
+
+/* ==========================================================================
+   File Extensions 
+   ========================================================================== */
+
+    .attachment-link.txt::before,
+    .attachment-link.text::before,
+    .attachment-link.css::before,
+    .attachment-link.js::before,
+    .attachment-link.html::before,
+    .attachment-link.csv::before,
+    .attachment-link.sql::before,
+    .attachment-link.json::before {
+        background-image: var(--file-icons__background-image__text);
+        background-color: var(--file-icons__background-color__text);
+    }
+
+    .attachment-link.doc::before,
+    .attachment-link.docx::before,
+    .attachment-link.odt::before,
+    .attachment-link.pages::before {
+        background-image: var(--file-icons__background-image__document);
+        background-color: var(--file-icons__background-color__document);
+    }
+
+    .attachment-link.xls::before,
+    .attachment-link.xlsx::before,
+    .attachment-link.ods::before,
+    .attachment-link.numbers::before {
+        background-image: var(--file-icons__background-image__spreadsheet);
+        background-color: var(--file-icons__background-color__spreadsheet);
+    }
+
+    .attachment-link.ppt::before,
+    .attachment-link.pptx::before,
+    .attachment-link.odp::before,
+    .attachment-link.key::before {
+        background-image: var(--file-icons__background-image__presentation);
+        background-color: var(--file-icons__background-color__presentation);
+    }
+
+    .attachment-link.pdf::before {
+        background-image: var(--file-icons__background-image__pdf);
+        background-color: var(--file-icons__background-color__pdf);
+    }
+
+    .attachment-link.zip::before {
+        background-image: var(--file-icons__background-image__zip);
+        background-color: var(--file-icons__background-color__zip);
+    }
+
+    .attachment-link.mp4::before,
+    .attachment-link.wmv::before,
+    .attachment-link.webm::before,
+    .attachment-link.mkv::before,
+    .attachment-link.ogg::before,
+    .attachment-link.avi::before,
+    .attachment-link.mov::before {
+        background-image: var(--file-icons__background-image__video);
+        background-color: var(--file-icons__background-color__video);
+    }
+
+    .attachment-link.mp3::before,
+    .attachment-link.aac::before,
+    .attachment-link.aiff::before,
+    .attachment-link.flac::before,
+    .attachment-link.m4a::before,
+    .attachment-link.wav::before {
+        background-image: var(--file-icons__background-image__audio);
+        background-color: var(--file-icons__background-color__audio);
+    }
+
+.attachment-link.png::before,
+.attachment-link.jpg::before,
+.attachment-link.jpeg::before,
+.attachment-link.heic::before,
+.attachment-link.gif::before,
+.attachment-link.svg::before,
+.attachment-link.bmp::before,
+.attachment-link.psd::before,
+.attachment-link.webp::before,
+.attachment-link.avif::before {
+    background-image: var(--file-icons__background-image__image);
+    background-color: var(--file-icons__background-color__image);
+}
+
+
+
+/* ==========================================================================
+   Attachment Link Modal
+   ========================================================================== */
+
+.attachment-link__modal[open] {
+    position: fixed;
+    padding: 0;
+    border: 0;
+    z-index: 100;
+    top: 0;
+    right: 0;
+    bottom: 0;
+    left: 0;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    min-width: 100%;
+    min-height: 100%;
+    transition: background-color .32s;
+    background-color: rgba(0, 0, 0, .9);
+    background-color: #222;
+}
+
+
+
+/* ==========================================================================
+   Attachment Link Modal Header
+   ========================================================================== */
+
+.attachment-link__modal-header {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 100%;
+    box-sizing: border-box;
+    position: relative;
+    padding: 0 16px;
+    cursor: default;
+}
+
+
+
+/* ==========================================================================
+   Attachment Link Modal File Name
+   ========================================================================== */
+
+.attachment-link__modal-file-name {
+    cursor: text;
+    color: #fff;
+    padding: 16px 24px;
+    font-weight: bold;
+    font-size: 17px;
+    text-align: center;
+}
+
+
+
+/* ==========================================================================
+   Attachment Link Modal Close Button
+   ========================================================================== */
+
+.attachment-link__modal-close-button {
+    appearance: none;
+    outline: none;
+    background-image: url(/Images/svg-icons/close.svg);
+    background-repeat: no-repeat;
+    background-size: 20px 20px;
+    background-position: center;
+    background-color: #fafafa;
+    width: 30px;
+    height: 30px;
+    border-radius: 50%;
+    cursor: pointer;
+    border: 1px solid #bbb;
+    transition: background-color .1s, box-shadow .1s;
+    right: 10px;
+    position: absolute;
+}
+
+.attachment-link__modal-close-button:hover {
+    background-color: #ddd;
+    border-color: #aaa;
+}
+
+
+
+/* ==========================================================================
+   Attachment Link Modal Iframe
+   ========================================================================== */
+
+.attachment-link__modal-iframe {
+    width: 100%;
+    height: 100vh;
+    border: none;
+}
+
+
+
+/* ==========================================================================
+   File Extensions Outlined
+   ========================================================================== */
+
+.attachment-link.OUTLINED::before {
+    background-image: var(--file-icons-outlined__background-image__default);
+    background-color: var(--file-icons-outlined__background-color__default);
+    border-width: var(--file-icons-outlined__border-width__default);
+    border-style: var(--file-icons-outlined__border-style__default);
+    border-color: var(--file-icons-outlined__border-color__default);
+}
+
+.attachment-link.OUTLINED.txt::before,
+.attachment-link.OUTLINED.text::before,
+.attachment-link.OUTLINED.css::before,
+.attachment-link.OUTLINED.js::before,
+.attachment-link.OUTLINED.html::before,
+.attachment-link.OUTLINED.csv::before,
+.attachment-link.OUTLINED.sql::before,
+.attachment-link.OUTLINED.json::before {
+    background-image: var(--file-icons-outlined__background-image__text);
+    background-color: var(--file-icons-outlined__background-color__text);
+    border-color: var(--file-icons-outlined__border-color__text);
+}
+
+.attachment-link.OUTLINED.doc::before,
+.attachment-link.OUTLINED.docx::before,
+.attachment-link.OUTLINED.odt::before,
+.attachment-link.OUTLINED.pages::before {
+    background-image: var(--file-icons-outlined__background-image__document);
+    background-color: var(--file-icons-outlined__background-color__document);
+    border-color: var(--file-icons-outlined__border-color__document);
+}
+
+.attachment-link.OUTLINED.xls::before,
+.attachment-link.OUTLINED.xlsx::before,
+.attachment-link.OUTLINED.ods::before,
+.attachment-link.OUTLINED.numbers::before {
+    background-image: var(--file-icons-outlined__background-image__spreadsheet);
+    background-color: var(--file-icons-outlined__background-color__spreadsheet);
+    border-color: var(--file-icons-outlined__border-color__spreadsheet);
+}
+
+.attachment-link.OUTLINED.ppt::before,
+.attachment-link.OUTLINED.pptx::before,
+.attachment-link.OUTLINED.odp::before,
+.attachment-link.OUTLINED.key::before {
+    background-image: var(--file-icons-outlined__background-image__presentation);
+    background-color: var(--file-icons-outlined__background-color__presentation);
+    border-color: var(--file-icons-outlined__border-color__presentation);
+}
+
+.attachment-link.OUTLINED.pdf::before {
+    background-image: var(--file-icons-outlined__background-image__pdf);
+    background-color: var(--file-icons-outlined__background-color__pdf);
+    border-color: var(--file-icons-outlined__border-color__pdf);
+}
+
+.attachment-link.OUTLINED.zip::before {
+    background-image: var(--file-icons-outlined__background-image__zip);
+    background-color: var(--file-icons-outlined__background-color__zip);
+    border-color: var(--file-icons-outlined__border-color__zip);
+}
+
+.attachment-link.OUTLINED.mp4::before,
+.attachment-link.OUTLINED.wmv::before,
+.attachment-link.OUTLINED.webm::before,
+.attachment-link.OUTLINED.mkv::before,
+.attachment-link.OUTLINED.ogg::before,
+.attachment-link.OUTLINED.avi::before,
+.attachment-link.OUTLINED.mov::before {
+    background-image: var(--file-icons-outlined__background-image__video);
+    background-color: var(--file-icons-outlined__background-color__video);
+    border-color: var(--file-icons-outlined__border-color__video);
+}
+
+.attachment-link.OUTLINED.mp3::before,
+.attachment-link.OUTLINED.aac::before,
+.attachment-link.OUTLINED.aiff::before,
+.attachment-link.OUTLINED.flac::before,
+.attachment-link.OUTLINED.m4a::before,
+.attachment-link.OUTLINED.wav::before {
+    background-image: var(--file-icons-outlined__background-image__audio);
+    background-color: var(--file-icons-outlined__background-color__audio);
+    border-color: var(--file-icons-outlined__border-color__audio);
+}
+
+.attachment-link.OUTLINED.png::before,
+.attachment-link.OUTLINED.jpg::before,
+.attachment-link.OUTLINED.jpeg::before,
+.attachment-link.OUTLINED.heic::before,
+.attachment-link.OUTLINED.gif::before,
+.attachment-link.OUTLINED.svg::before,
+.attachment-link.OUTLINED.bmp::before,
+.attachment-link.OUTLINED.psd::before,
+.attachment-link.OUTLINED.webp::before,
+.attachment-link.OUTLINED.avif::before {
+    background-image: var(--file-icons-outlined__background-image__image);
+    background-color: var(--file-icons-outlined__background-color__image);
+    border-color: var(--file-icons-outlined__border-color__image);
+}

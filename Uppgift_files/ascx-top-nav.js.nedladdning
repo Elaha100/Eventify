@@ -1,0 +1,484 @@
+'use strict';
+
+(function () {
+
+    const cmp = LearnPoint.createComponent('ascx-top-nav');
+
+    const ClassName = {
+        UNREAD_BADGE_EMPTY: 'EMPTY',
+        SCROLLED: 'SCROLLED'
+    }
+
+    const Selector = {
+        TOP_NAV: cmp.componentSelector(),
+        UNREAD_BADGE: cmp.elementSelector('unread-badge'),
+        NOTIFICATIONS_LINK: cmp.elementSelector('notifications-link'),
+        NOTIFICATIONS_POPOVER: cmp.elementSelector('notifications-popover'),
+        NOTIFICATIONS_LIST_ITEM: cmp.elementSelector('notifications-list-item'),
+        MORE_LINK: cmp.elementSelector('more-link'),
+        MORE_POPOVER: cmp.elementSelector('more-popover'),
+        MORE_LIST_ITEM: cmp.elementSelector('more-list-item'),
+        GROUP_SHORTCUTS: cmp.elementSelector('group-shortcuts'),
+        GROUP_SHORTCUTS_POPOVER: cmp.elementSelector('group-shortcuts-popover')
+    }
+
+    const NOTIFICATIONS_UNREAD_CACHE_KEY = 'ascx-top-nav__notifications-unread';
+
+    const NOTIFICATIONS_POPOVER_URL = '/Notificationforms/Notifications_Popover.aspx';
+    const GROUP_SHORTCUTS_POPOVER_URL = '/GroupForms/Active_Groups_Popover.aspx';
+    const MORE_POPOVER_URL = '/MenuForms/Menu_Popover.aspx';
+
+    const UPDATE_BADGE_DEBOUNCE_SECONDS = 0.2;
+
+    const NOTIFICATION_BADGE_POLLING_INTERVAL = {
+        DEFAULT: 60,
+        USER_INACTIVE: 600,
+        PAGE_HIDDEN: 172800
+    }
+
+
+
+    /* =====================================================================
+       Notification Listeners
+       ===================================================================== */
+
+    document.addEventListener(Utils.Event.NOTIFICATION_SOURCE_VISIT, event => updateNotificationBadge());
+
+    document.addEventListener(Utils.Event.NOTIFICATIONS_UNREAD_COUNT_CHANGE, async event => {
+        updateNotificationBadge();
+        fillNotificationsPopover(false);
+    });
+
+    document.addEventListener('visibilitychange', event => {
+        if (document.visibilityState === 'visible') {
+            updateNotificationBadge();
+            restartNotificationBadge_Poller('Document became visible.');
+        }
+    });
+
+    document.addEventListener(Utils.Event.USER_ACTIVE, event => {
+        updateNotificationBadge();
+        restartNotificationBadge_Poller('User became active.');
+    });
+
+    document.addEventListener('DOMContentLoaded', event => {
+        updateNotificationBadge();
+        startNotificationBadge_Poller();
+    });
+
+    Sys.WebForms.PageRequestManager.getInstance().add_endRequest((sender, args) => {
+        updateNotificationBadge();
+    });
+
+
+
+    /* =====================================================================
+       Notification Badge Poller
+       ===================================================================== */
+
+    let notificationBadgePollerTimeout = null;
+
+    function startNotificationBadge_Poller() {
+
+        let timeout = getNotificationBadgePollingInterval();
+
+        console.debug('Notification badge will update in', timeout, 'seconds');
+
+        notificationBadgePollerTimeout = setTimeout(() => {
+            updateNotificationBadge();
+            startNotificationBadge_Poller();
+        }, timeout * 1000)
+    }
+
+    function restartNotificationBadge_Poller(reason = 'Restart requested.') {
+        console.log(`Restart notification badge poller - ${reason}`);
+        clearTimeout(notificationBadgePollerTimeout);
+        startNotificationBadge_Poller();
+    }
+
+    function getNotificationBadgePollingInterval() {
+        if (document.hidden) {
+            return NOTIFICATION_BADGE_POLLING_INTERVAL.PAGE_HIDDEN;
+        }
+
+        if (!Utils.isUserActive()) {
+            return NOTIFICATION_BADGE_POLLING_INTERVAL.USER_INACTIVE;
+        }
+
+        return NOTIFICATION_BADGE_POLLING_INTERVAL.DEFAULT;
+    }
+
+
+
+    /* =====================================================================
+       Notifications Badge
+       ===================================================================== */
+
+    const updateNotificationBadge = Utils.debounce(async function updateNotificationBadge() {
+        if (navigator.onLine === false) {
+            console.log('Will not update notification badge - Browser offline.');
+            return;
+        }
+
+        const unreadNotificationsCache = NotificationsUnreadCache.get();
+        const serverValue = await Utils.getServerNotificationsUnread();
+
+        if (serverValue === null) {
+            console.error('Will not update notification badge - Response was not an integer');
+            return;
+        }
+
+        if (serverValue === unreadNotificationsCache) {
+            console.debug('Will not update notification badge - Value not changed.');
+            return;
+        }
+
+        setBrowserNotificationsUnread(serverValue);
+    }, UPDATE_BADGE_DEBOUNCE_SECONDS * 1000);
+
+    function setBrowserNotificationsUnread(n) {
+
+        // 1. Set storage value.
+        NotificationsUnreadCache.set(n);
+
+        // 2. Set UI value.
+        const unreadBadge = document.querySelector(Selector.UNREAD_BADGE);
+        if (!unreadBadge) {
+            console.error('Will not update notification badge - Badge element not found.');
+            return;
+        }
+
+        if (n === 0) {
+            unreadBadge.textContent = '';
+            unreadBadge.classList.add(ClassName.UNREAD_BADGE_EMPTY);
+        } else {
+            unreadBadge.textContent = n;
+            unreadBadge.classList.remove(ClassName.UNREAD_BADGE_EMPTY);
+        }
+
+        console.log('Unread notification badge was set to', n);
+    }
+
+    const NotificationsUnreadCache = {
+        get: () => {
+
+            const rawCacheValue = sessionStorage.getItem(NOTIFICATIONS_UNREAD_CACHE_KEY);
+            if (rawCacheValue == null) {
+                return null;
+            }
+
+            const count = Utils.stringToIntegerOrNull(rawCacheValue);
+
+            return count;
+        },
+
+        set: countInput => {
+
+            // Make sure that the count property is always an actual integer.
+            // The ascx will read directly from storage, and we don't want
+            // fancy type checking in the ascx.
+
+            const count = Utils.stringToIntegerOrNull(countInput);
+            if (count === null) {
+                return;
+            }
+
+            sessionStorage.setItem(NOTIFICATIONS_UNREAD_CACHE_KEY, count);
+        }
+    }
+
+
+
+    /* =====================================================================
+       Open / Close Notifications Popover
+       ===================================================================== */
+
+    document.addEventListener(LearnPoint.Expandable.Event.EXPANDED, async event => {
+        const notificationsListItem = event.target.matches(Selector.NOTIFICATIONS_LIST_ITEM);
+        if (!notificationsListItem) {
+            return;
+        }
+
+        fillNotificationsPopover();
+        updateNotificationBadge();
+
+        if (isMobile) {
+            LearnPoint.SiteScrolling.Disable();
+        }
+
+    });
+
+    document.addEventListener(LearnPoint.Expandable.Event.COLLAPSED, async event => {
+        const notificationsListItem = event.target.matches(Selector.NOTIFICATIONS_LIST_ITEM);
+        if (!notificationsListItem) {
+            return;
+        }
+
+        if (LearnPoint.SiteScrolling.IsDisabled()) {
+            LearnPoint.SiteScrolling.Enable();
+        }
+    });
+
+    async function fillNotificationsPopover(showSpinner = true) {
+        const notificationsPopover = document.querySelector(Selector.NOTIFICATIONS_POPOVER);
+        if (!notificationsPopover) {
+            console.error('Could not find notifications popover element.');
+            return;
+        }
+
+        // 1. Spinner
+        if (showSpinner) {
+            notificationsPopover.innerHTML = spinnerHTML;
+        }
+
+        // 2. Fill
+        const notificationsMarkup = await getNotificationsPopoverMarkup();
+        if (!notificationsMarkup) {
+            console.error('Could not fetch notifications markup.');
+            return;
+        }
+
+        notificationsPopover.innerHTML = notificationsMarkup;
+    }
+
+    async function getNotificationsPopoverMarkup() {
+        try {
+            const response = await fetch(NOTIFICATIONS_POPOVER_URL);
+
+            Utils.reloadIfRedirect(response);
+
+            if (!response.ok) {
+                console.error('Could not fetch notification popover markup', response.statusText);
+                return null;
+            }
+
+            const txt = await response.text();
+
+            return txt;
+
+        } catch (error) {
+            console.error('Could not fetch notification popover markup', error);
+            return null;
+        }
+    }
+
+
+
+    /* =====================================================================
+       Spinner HTML
+       ===================================================================== */
+
+    const spinnerHTML =
+        `<div class="ascx-top-nav__notifications-popover-spinner">
+            <svg class="ascx-top-nav__notifications-popover-spinner-svg" width="32" height="32" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+	            <path class="ascx-top-nav__notifications-popover-spinner-path" d="M12,1A11,11,0,1,0,23,12,11,11,0,0,0,12,1Zm0,20a9,9,0,1,1,9-9A9,9,0,0,1,12,21Z" transform="translate(12, 12) scale(0)"/>
+	            <path class="ascx-top-nav__notifications-popover-spinner-path SECOND-PATH" d="M12,1A11,11,0,1,0,23,12,11,11,0,0,0,12,1Zm0,20a9,9,0,1,1,9-9A9,9,0,0,1,12,21Z" transform="translate(12, 12) scale(0)"/>
+	            <path class="ascx-top-nav__notifications-popover-spinner-path THIRD-PATH" d="M12,1A11,11,0,1,0,23,12,11,11,0,0,0,12,1Zm0,20a9,9,0,1,1,9-9A9,9,0,0,1,12,21Z" transform="translate(12, 12) scale(0)"/>
+            </svg>
+        </div>`;
+
+
+
+    /* =====================================================================
+       Add SCROLLED css class to top-nav when page is scrolled
+       ===================================================================== */
+
+    // extra state to reduce dom queries
+    let scrolled = false;
+    let topNavElement = null;
+
+    document.addEventListener('scroll', Utils.throttle(event => {
+
+        if (window.scrollY === 0) {
+
+            if (!scrolled) {
+                return;
+            }
+
+            if (!topNavElement) {
+                topNavElement = document.querySelector(Selector.TOP_NAV);
+            }
+
+            topNavElement.classList.remove(ClassName.SCROLLED);
+            scrolled = false;
+
+        } else {
+
+            if (scrolled) {
+                return;
+            }
+
+            if (!topNavElement) {
+                topNavElement = document.querySelector(Selector.TOP_NAV);
+            }
+
+            topNavElement.classList.add(ClassName.SCROLLED);
+            scrolled = true;
+        }
+    }, 100));
+
+
+
+    /* =====================================================================
+       Group Shortcuts Popover Open/Close
+       ===================================================================== */
+
+    document.addEventListener(LearnPoint.Expandable.Event.EXPANDED, async event => {
+        const groupShortcuts = event.target.closest(Selector.GROUP_SHORTCUTS);
+        if (!groupShortcuts) {
+            return;
+        }
+
+        fillGroupShortcutsPopover();
+    });
+
+    async function fillGroupShortcutsPopover() {
+        const groupShortcutsPopover = document.querySelector(Selector.GROUP_SHORTCUTS_POPOVER);
+        if (!groupShortcutsPopover) {
+            console.error('Could not find group shortcuts popover element.');
+            return;
+        }
+
+        // 1. Already filled?
+        if (groupShortcutsPopover.children.length > 0) {
+            return;
+        }
+
+        // 2. Spinner
+        groupShortcutsPopover.innerHTML = spinnerHTML;
+
+        // 3. Fill
+        const groupShortcutsMarkup = await getGroupShortcutsPopoverMarkup();
+        if (!groupShortcutsMarkup) {
+            console.error('Could not fetch group shortcuts popover markup.');
+            return;
+        }
+
+        groupShortcutsPopover.innerHTML = groupShortcutsMarkup;
+
+        // 4. Set current shortcut link and scroll into view
+        const currentShortcut = getCurrentGroupShortcut(groupShortcutsPopover);
+        if (!currentShortcut) {
+            return;
+        }
+
+        currentShortcut.classList.add('CURRENT');
+        currentShortcut.scrollIntoView({ block: 'center' });
+    }
+
+    async function getGroupShortcutsPopoverMarkup() {
+        try {
+            const response = await fetch(GROUP_SHORTCUTS_POPOVER_URL);
+
+            Utils.reloadIfRedirect(response);
+
+            if (!response.ok) {
+                console.error('Could not fetch group shortcuts popover markup', response.statusText);
+                return null;
+            }
+
+            const txt = await response.text();
+
+            return txt;
+
+        } catch (error) {
+            console.error('Could not fetch group shortcuts popover markup', error);
+            return null;
+        }
+    }
+
+    function getCurrentGroupShortcut(groupShortcutsPopover) {
+        if (!location.href.includes('GroupForms/')) {
+            return null;
+        }
+
+        const currentGroupId = Utils.urlGetParam(location.href, 'Id');
+        if (!currentGroupId) {
+            return null;
+        }
+
+        const links = groupShortcutsPopover.querySelectorAll('a');
+
+        for (const link of links) {
+            const href = link.href;
+            if (!href) {
+                continue;
+            }
+
+            const linkGroupId = Utils.urlGetParam(href, 'Id');
+            if (!linkGroupId) {
+                continue;
+            }
+
+            if (linkGroupId !== currentGroupId) {
+                continue;
+            }
+
+            return link;
+        }
+
+        return null;
+    }
+
+
+
+    /* =====================================================================
+       More Popover Open/Close
+       ===================================================================== */
+
+    document.addEventListener(LearnPoint.Expandable.Event.EXPANDED, async event => {
+        const moreListItem = event.target.closest(Selector.MORE_LIST_ITEM);
+        if (!moreListItem) {
+            return;
+        }
+
+        fillMorePopover();
+    });
+
+    async function fillMorePopover() {
+        const morePopover = document.querySelector(Selector.MORE_POPOVER);
+        if (!morePopover) {
+            console.error('Could not find more popover element.');
+            return;
+        }
+
+        // 1. Already filled?
+        if (morePopover.children.length > 0) {
+            return;
+        }
+
+        // 2. Spinner
+        morePopover.innerHTML = spinnerHTML;
+
+        // 3. Fill
+        const moreMarkup = await getMorePopoverMarkup();
+        if (!moreMarkup) {
+            console.error('Could not fetch more links popover markup.');
+            return;
+        }
+
+        morePopover.innerHTML = moreMarkup;
+    }
+
+    async function getMorePopoverMarkup() {
+        try {
+            const response = await fetch(MORE_POPOVER_URL);
+
+            Utils.reloadIfRedirect(response);
+
+            if (!response.ok) {
+                console.error('Could not fetch more links popover markup', response.statusText);
+                return null;
+            }
+
+            const txt = await response.text();
+
+            return txt;
+
+        } catch (error) {
+            console.error('Could not fetch more links popover markup', error);
+            return null;
+        }
+    }
+
+})();

@@ -1,0 +1,11 @@
+(function () {
+    window.addEventListener('beforeprint', event => {
+        console.log('Activated print mode.')
+        document.documentElement.classList.add('print');
+    });
+
+    window.addEventListener('afterprint', event => {
+        console.log('Deactivated print mode.')
+        document.documentElement.classList.remove('print');
+    });
+})();

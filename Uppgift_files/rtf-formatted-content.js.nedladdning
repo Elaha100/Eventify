@@ -1,0 +1,150 @@
+﻿'use strict';
+
+(function () {
+
+    const cmp = LearnPoint.createComponent('rtf-formatted-content');
+
+    // IMPORTANT: We must use `div.rtf-formatted-content` to avoid selecting elements
+    // inside the Trix editor. The Trix editor uses a <trix-editor> element
+    // and the elements will not be selected because we use div in the selector.
+    //
+    // (We don't want to replace failed media in Trix editor, that would corrupt Trix data,
+    // and we also don't want to set preload on audio or video.)
+
+    const Selector = {
+        COMPONENT: 'div.rtf-formatted-content',
+        AUDIO_AND_VIDEO: 'div.rtf-formatted-content .attachment audio, div.rtf-formatted-content .attachment video',
+        MEDIA_ELEMENT: 'div.rtf-formatted-content .attachment audio, div.rtf-formatted-content .attachment video, div.rtf-formatted-content .attachment img'
+    }
+
+    const audioAndVideoIntersectionObserver = new IntersectionObserver(audioAndVideoIntersects);
+
+    const Param = {
+        DISPOSITION: 'Disposition'
+    }
+
+    const ParamValue = {
+        ATTACHMENT: 'Attachment'
+    }
+
+    const Attribute = {
+        TRIX_ATTACHMENT: 'data-trix-attachment'
+    }
+
+
+
+    /* =====================================================================
+       Observing Video Elements
+       ===================================================================== */
+
+    window.addEventListener('load', () => startObservingAudioAndVideo());
+
+    // ---------------------------------------------------------------------
+
+    Sys.WebForms.PageRequestManager.getInstance().add_endRequest((sender, args) => {
+        const updatePanels = LearnPoint.Main.getUpdatePanels();
+
+        for (const updatePanel of updatePanels) {
+            startObservingAudioAndVideo(updatePanel)
+        }
+    });
+
+    // ---------------------------------------------------------------------
+
+    function startObservingAudioAndVideo(scope = document) {
+        const audioAndVideoElements = scope.querySelectorAll(Selector.AUDIO_AND_VIDEO);
+
+        for (const audioAndVideoElement of audioAndVideoElements) {
+            audioAndVideoIntersectionObserver.observe(audioAndVideoElement);
+        }
+
+        console.debug(`Started observing ${audioAndVideoElements.length} audio and video elements.`);
+    }
+
+    // ---------------------------------------------------------------------
+
+    function audioAndVideoIntersects(entries, observer) {
+        entries.forEach(async entry => {
+            if (!entry.isIntersecting) {
+                return;
+            }
+
+            if (!entry.target.matches(Selector.AUDIO_AND_VIDEO)) {
+                return;
+            }
+
+            if (entry.target.preload && entry.target.preload === 'none') {
+                entry.target.preload = 'metadata';
+                console.log(`Set preload metadata on ${Utils.eltos(entry.target)}.`);
+            }
+
+            audioAndVideoIntersectionObserver.unobserve(entry.target);
+        });
+    }
+
+
+
+    /* =====================================================================
+       Replace failed media with file attachment
+       ===================================================================== */
+
+    document.addEventListener('error', event => {
+
+        if (!event.target.matches(Selector.MEDIA_ELEMENT)) {
+            return;
+        }
+
+        const mediaElement = event.target;
+        const figureElement = event.target.closest('figure');
+
+        if (!figureElement) {
+            return;
+        }
+
+        console.log('Replacing failed media for', Utils.eltos(mediaElement));
+
+        const url = Utils.urlSetParam(mediaElement.src, Param.DISPOSITION, ParamValue.ATTACHMENT);
+        const name = getAttachmentName(figureElement) || "Filnamn";
+
+        const figureReplacement = createFigure(url, name);
+
+        figureElement.replaceWith(figureReplacement);
+
+    }, true);
+
+    //  ------------------------------------------------------------------------
+
+    function createFigure(url, name) {
+        const fileExtension = Utils.getFileExtension(name);
+
+        const html = `<figure class="attachment attachment--file attachment--${fileExtension}">
+                          <a href="${url}">
+                              <figcaption class="attachment__caption">
+                                  <span class="attachment__name">${name}</span>
+                              </figcaption>
+                          </a>
+                      </figure>`;
+
+        return Utils.createElementFromHtml(html);
+    }
+
+    //  ------------------------------------------------------------------------
+
+    function getAttachmentName(figureElement) {
+        const trixAttachmentAttributeValue = figureElement.getAttribute(Attribute.TRIX_ATTACHMENT);
+        let trixAttachmentObject;
+
+        try {
+            trixAttachmentObject = JSON.parse(trixAttachmentAttributeValue);
+        } catch (error) {
+            return null;
+        }
+
+        if (!trixAttachmentObject["filename"]) {
+            return null;
+        }
+
+        return trixAttachmentObject["filename"];
+    }
+
+})();

@@ -1,0 +1,92 @@
+﻿/* ==========================================================================
+   Modal overlay
+   ========================================================================== */
+
+/* Darker background for modals */
+div.TelerikModalOverlay {
+    background-color:rgba(0,0,0,1) !important;
+    opacity: 0 !important;
+    right:0;
+    bottom:0;
+    height:unset !important;
+    position:fixed !important;
+    transition:opacity .3s;
+}
+
+.is-mobile div.TelerikModalOverlay {
+    background-color:rgba(0,0,0,0) !important;
+}
+
+div.TelerikModalOverlay.OPEN {
+    opacity: 0.6 !important;
+}
+
+
+
+/* ==========================================================================
+   Rad Scheduler
+   ========================================================================== */
+
+/* Remove vertical padding and use line-height instead to create the correct vertical spacing */
+/*.RadScheduler.RadScheduler_Metro .rsDayView .rsAptContent,
+.RadScheduler.RadScheduler_Metro .rsWeekView .rsAptContent,
+.RadScheduler.RadScheduler_Metro .rsMonthView .rsAptContent {
+    padding-top:0;
+    padding-bottom:0;
+    padding-left:6px;
+    padding-right:6px;
+    line-height:22px;
+}*/
+
+/* Add some space to make room for right and left arrows */
+/*.RadScheduler.RadScheduler_Metro .rsWArrowRight .rsAptContent,
+.RadScheduler.RadScheduler_Metro .rsWArrowLeft .rsAptContent {
+    padding-right:10px;
+    padding-left:10px;
+}*/
+
+/* Arrows should be white */
+/*.RadScheduler.RadScheduler_Metro .rsArrowTop,
+.RadScheduler.RadScheduler_Metro .rsArrowRight,
+.RadScheduler.RadScheduler_Metro .rsArrowBottom,
+.RadScheduler.RadScheduler_Metro .rsArrowLeft {
+    color:#fff;
+}*/
+
+/* Slightly adjust arrow positions */
+/*.RadScheduler.RadScheduler_Metro .rsArrowTop { top:3px; }
+.RadScheduler.RadScheduler_Metro .rsArrowRight { right:3px; }
+.RadScheduler.RadScheduler_Metro .rsArrowBottom { left:3px; }
+.RadScheduler.RadScheduler_Metro .rsArrowLeft { left:3px; }*/
+
+
+
+/* ==========================================================================
+   RadDock
+   ========================================================================== */
+
+.RadDock_Metro.RadDock {
+    box-shadow:0 0 6px rgba(0,0,0,.2),
+               0 6px 12px rgba(0,0,0,.32);
+    border:0;
+}
+
+
+
+/* ==========================================================================
+   RadToolBar
+   ========================================================================== */
+
+.RadToolBar_Metro.RadToolBar {
+    z-index:0 !important;
+}
+
+
+
+/* ==========================================================================
+   RadDateTimePicker.WHOLEDAY
+   ========================================================================== */
+
+.RadDateTimePicker.LearnPoint_DateTimePicker.WHOLEDAY .rcTimePopup {
+    display:none;
+}

@@ -1,0 +1,318 @@
+'use strict';
+
+(function () {
+
+
+    var cmp = LearnPoint.createComponent('telerik-rad-window');
+
+
+    /* =====================================================================
+	   Selector
+	   ===================================================================== */
+
+    var Selector = {
+        COMPONENT: '.RadWindow.telerik-rad-window', // cannot add data-attributes to telerik control
+        OPEN_COMPONENT: '.RadWindow.telerik-rad-window.OPEN',
+        OVERLAY: '.TelerikModalOverlay',
+        TELERIK_CLOSE_BUTTON: '.rwCloseButton',
+        CLOSE_BUTTON_SUBSTITUTE: cmp.elementSelector('close-button-substitute'),
+    }
+
+
+
+    /* =====================================================================
+	   Class Names
+	   ===================================================================== */
+
+    var ClassName = {
+        RAD_WINDOW_OPEN: 'OPEN',
+        OVERLAY_OPEN: 'OPEN'
+    }
+
+    cmp['ClassName'] = ClassName;
+
+
+
+    /* =====================================================================
+	   Add Ajax End Handler
+	   ===================================================================== */
+
+    window.addEventListener('load', function () {
+
+        Sys.WebForms.PageRequestManager.getInstance().add_endRequest(endRequestHandler);
+
+    });
+
+
+
+    /* =====================================================================
+	   Resize Listeners and Handlers
+	   ===================================================================== */
+
+    var throttledResizeHandler = Utils.throttle(resizeHandler, 100);
+
+    function enableResizeHandler() {
+        window.addEventListener('resize', throttledResizeHandler);
+    }
+
+    function disableResizeHandler() {
+        window.addEventListener('resize', throttledResizeHandler);
+    }
+
+    function resizeHandler() {
+
+        var openRadWindows = getOpenRadWindows();
+        if (openRadWindows.length > 0) {
+            // assume there is only one
+            resizeRadWindow(openRadWindows[0]);
+        }
+    }
+
+    function resizeRadWindow(radWindow) {
+
+        if (isDesktop) {
+            // Using private api to avoid too much layout thrashing
+            // (The alternative would've been to call center() and then
+            // moveTo(), but that would cause too many DOM updates)
+            var m = radWindow._getCentralBounds();
+            radWindow.moveTo(m.x, 32);
+        }
+    }
+
+
+
+    /* =====================================================================
+       On Open
+       ===================================================================== */
+
+    function OnOpen(radWindow) {
+
+        // Resize and enable resize handler
+        resizeRadWindow(radWindow);
+        enableResizeHandler();
+
+        // Disable scroll
+        LearnPoint.SiteScrolling.Disable();
+
+        // Add OPEN class
+        var rad_window_element = radWindow.ui.container;
+        var overlay = document.querySelector(Selector.OVERLAY);
+        rad_window_element.classList.add(ClassName.RAD_WINDOW_OPEN);
+        overlay.classList.add(ClassName.OVERLAY_OPEN);
+
+        // Autofocus
+        autofocus(rad_window_element);
+
+        // Validate
+        LearnPoint.WebformsValidator.validateAll();
+    }
+
+    cmp['OnOpen'] = OnOpen;
+
+
+
+    /* =====================================================================
+       On Close
+       ===================================================================== */
+
+    function OnClose(radWindow) {
+
+        // Disable resize handler
+        disableResizeHandler();
+
+        // Enable scrolling
+        LearnPoint.SiteScrolling.Enable();
+
+        // Remove OPEN class
+        var rad_window_element = radWindow.ui.container;
+        rad_window_element.classList.remove(ClassName.RAD_WINDOW_OPEN);
+    }
+
+    cmp['OnClose'] = OnClose;
+
+
+
+    /* =====================================================================
+       Replace Telerik Close Button Click
+
+       The Telerik Close Button does not trigger postback. Sometimes this is
+       OK. But if there are invald input fields in the radwindow, we have to
+       make a postback with CausesValidation="false" to make sure the page
+       does not stay invalid after the radWindow is closed.
+
+       Example:
+       <asp:Button data-element="telerik-rad-window.close-button-substitute" CausesValidation="false" />
+       ===================================================================== */
+
+    document.addEventListener('pointerup', replaceCloseButtonClick, true);
+    document.addEventListener('touchend', replaceCloseButtonClick, true);
+    document.addEventListener('mouseup', replaceCloseButtonClick, true);
+
+    function replaceCloseButtonClick(event) {
+        
+        if (typeof event.target.matches !== 'function') {
+            return; // target is not an element
+        }
+        
+        if (!event.target.matches(Selector.TELERIK_CLOSE_BUTTON)) {
+            return;
+        }
+        
+        var radWindow = event.target.closest(Selector.COMPONENT);
+        if (!radWindow) {
+            return;
+        }
+
+        var closeButtonSubstitute = radWindow.querySelector(Selector.CLOSE_BUTTON_SUBSTITUTE);
+        if (!closeButtonSubstitute) {
+            return;
+        }
+
+        console.log('will substitute close button click with click on ' + Utils.eltos(closeButtonSubstitute));
+        event.stopImmediatePropagation();
+        closeButtonSubstitute.click();
+    }
+
+
+
+    /* =====================================================================
+       Overlay click handler
+       ===================================================================== */
+
+    document.addEventListener('click', function (event) {
+
+        if (!event.target.matches(Selector.OVERLAY)) {
+            return;
+        }
+
+        var component = document.querySelector(Selector.OPEN_COMPONENT);
+        if (!component) {
+            console.log('could not find open component');
+            return;
+        }
+
+        var closeButton = component.querySelector(Selector.TELERIK_CLOSE_BUTTON);
+        if (!closeButton) {
+            console.log('could not find close button');
+            return;
+        }
+
+        var triggerEvent;
+
+        if ('onpointerup' in document.documentElement) {
+
+            triggerEvent = new CustomEvent('pointerup', { 'bubbles': true });
+
+        } else if ('ontouchend' in document.documentElement) {
+
+            triggerEvent = new CustomEvent('touchend', { 'bubbles': true });
+
+        } else if ('onmouseup' in document.documentElement) {
+
+            triggerEvent = new CustomEvent('mouseup', { 'bubbles': true });
+        }
+
+        if (!triggerEvent) {
+            console.warn('could not find supported event type. tried pointerup, touchend and mouseup');
+            return;
+        }
+
+        console.log('will click on ' + Utils.eltos(closeButton));
+        closeButton.dispatchEvent(triggerEvent);
+    });
+
+
+
+    /* =====================================================================
+       Autofocus
+       ===================================================================== */
+
+    function autofocus(radWindowElement) {
+
+        var firstFocusableInput = radWindowElement.querySelector('input[type=text]:not([disabled]), select:not([disabled]), textarea:not([disabled])');
+        if (firstFocusableInput) {
+
+            console.log('Will put focus on ' + Utils.eltos(firstFocusableInput));
+            firstFocusableInput.focus();
+            return true;
+
+        } else {
+
+            var firstWithTabindex = radWindowElement.querySelector('[tabindex]:not([tabindex="-1"])');
+            if (firstWithTabindex) {
+
+                console.log('Will put focus on ' + Utils.eltos(firstWithTabindex));
+                firstWithTabindex.focus();
+                return true;
+            }
+        }
+
+        return false;
+    }
+
+
+
+    /* =====================================================================
+       End Request Handler
+       ===================================================================== */
+
+    function endRequestHandler(sender, args) {
+
+        const updatePanels = LearnPoint.Main.getUpdatePanels();
+
+        for (const updatePanel of updatePanels) {
+            var radWindow = updatePanel.closest(Selector.COMPONENT);
+            if (!radWindow) {
+                continue;
+            }
+
+            console.log('Will focus ' + Utils.eltos(radWindow));
+            const autofocusSuccessful = autofocus(radWindow);
+            if (autofocusSuccessful) {
+                break;
+            }
+        }
+    }
+
+
+
+    /* =====================================================================
+       Get Rad Windows
+       ===================================================================== */
+
+    function getRadWindows() {
+
+        var radWindows = [];
+
+        for (var i = 0; i < $telerik.radControls.length; i++) {
+            if ($telerik.radControls[i] instanceof Telerik.Web.UI.RadWindow) {
+                radWindows.push($telerik.radControls[i]);
+            }
+        }
+
+        return radWindows;
+    }
+
+
+
+    /* =====================================================================
+       Get Open Rad Windows
+       ===================================================================== */
+
+    function getOpenRadWindows() {
+
+        var radWindows = getRadWindows();
+        var openRadWindows = [];
+
+        for (var i = 0; i < radWindows.length; i++) {
+            if (!(radWindows[i].IsClosed())) {
+                openRadWindows.push(radWindows[i]);
+            }
+        }
+
+        return openRadWindows;
+    }
+
+
+
+}());

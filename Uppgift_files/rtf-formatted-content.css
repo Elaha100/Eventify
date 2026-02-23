@@ -1,0 +1,328 @@
+/* ==========================================================================
+   RTF Formatted Content
+   ========================================================================== */
+
+.rtf-formatted-content {
+    font-size: 16px;
+    max-width: 640px;
+    margin: 0 auto;
+    word-wrap: break-word;
+}
+
+
+
+/* ==========================================================================
+   h1
+   ========================================================================== */
+
+.rtf-formatted-content h1 {
+    font-size: 24px;
+    line-height: 30px;
+    margin: 6px 0;
+}
+
+
+
+/* ==========================================================================
+   pre
+   ========================================================================== */
+
+.rtf-formatted-content pre {
+    font-family: Consolas, monospace;
+    color: #444;
+    font-size: 14px;
+    line-height: 20px;
+    margin: 0;
+    background: rgba(0,0,0,0.03);
+    border-radius: 4px;
+    white-space: pre;
+    word-wrap: normal;
+    word-break: normal;
+    overflow-x: auto;
+    padding: 8px 12px;
+}
+
+
+
+/* ==========================================================================
+   blockquote
+   ========================================================================== */
+
+.rtf-formatted-content blockquote {
+    border-left: 2px solid #000;
+    margin: 0;
+    padding: 0 16px;
+}
+
+
+
+/* ==========================================================================
+   Attachment Gallery
+   ========================================================================== */
+
+.rtf-formatted-content .attachment-gallery {
+    word-wrap: break-word;
+}
+
+
+
+/* ==========================================================================
+   Attachment
+   ========================================================================== */
+
+.rtf-formatted-content .attachment {
+    display: inline-block;
+    display: block;
+    margin: 16px 0;
+    text-align: center;
+    line-height: 1;
+}
+
+
+
+/* ==========================================================================
+   Attachment Link
+   ========================================================================== */
+
+.rtf-formatted-content .attachment a {
+    cursor: default;
+}
+
+.rtf-formatted-content .attachment a:hover {
+    text-decoration: none;
+}
+
+
+
+/* ==========================================================================
+   Attachment Image
+   ========================================================================== */
+
+/* The first selector is needed for old images that were imported into news trix content */
+.rtf-formatted-content img, 
+.rtf-formatted-content .attachment img {
+    display: block;
+    margin: 0 auto;
+    max-width: 100%;
+    height: auto;
+    border-radius: 4px;
+    cursor: pointer;
+}
+
+
+
+/* ==========================================================================
+   Attachment Video
+   ========================================================================== */
+
+.rtf-formatted-content .attachment video {
+    display: block;
+    margin: 0 auto;
+    max-width: 100%;
+    height: auto;
+    border-radius: 4px;
+    background-color: #f5f5f5;
+}
+
+
+
+/* ==========================================================================
+   Attachment Audio
+   ========================================================================== */
+
+.rtf-formatted-content .attachment audio {
+    width: 480px;
+    max-width: 100%;
+}
+
+
+
+/* ==========================================================================
+   Attachment iframe (youtube for example)
+   ========================================================================== */
+
+.rtf-formatted-content .attachment iframe {
+    display: block;
+    margin: 0 auto;
+    max-width: 100%;
+    border-radius: 4px;
+}
+
+
+
+/* ==========================================================================
+   Attachment File
+   ========================================================================== */
+
+.rtf-formatted-content .attachment.attachment--file {
+    display: block;
+    width: auto;
+    text-align: left;
+    margin: 8px 0;
+}
+
+.rtf-formatted-content .attachment.attachment--file a {
+    display: inline-flex;
+    gap: 8px;
+    align-items: center;
+    font-size: 16px;
+    color: inherit;
+    border: 1px solid rgba(0,0,0,.1);
+    border-radius: 12px;
+    padding: 8px 16px 8px 8px;
+    margin: 0;
+    background-color: rgba(0,0,0,.03);
+    cursor: pointer;
+}
+
+.rtf-formatted-content .attachment.attachment--file a::before {
+    content: '';
+    display: block;
+    width: 32px;
+    height: 32px;
+    flex-shrink: 0;
+    background-size: contain;
+    background-repeat: no-repeat;
+    background-position: center;
+    border-radius: 6px;
+    box-sizing: border-box;
+    background-image: var(--file-icons__background-image__default);
+    background-color: var(--file-icons__background-color__default);
+}
+
+.rtf-formatted-content .attachment.attachment--file figcaption {
+    color: inherit;
+    font-size: inherit;
+    margin: 0;
+    height: auto;
+}
+
+.rtf-formatted-content .attachment.attachment--file figcaption .attachment__name {
+    display: inline;
+    overflow-wrap: anywhere;
+}
+
+
+
+/* ==========================================================================
+   Attachment File Icons
+   ========================================================================== */
+
+.rtf-formatted-content .attachment.attachment--file.attachment--txt a::before,
+.rtf-formatted-content .attachment.attachment--file.attachment--css a::before,
+.rtf-formatted-content .attachment.attachment--file.attachment--js a::before,
+.rtf-formatted-content .attachment.attachment--file.attachment--json a::before,
+.rtf-formatted-content .attachment.attachment--file.attachment--html a::before,
+.rtf-formatted-content .attachment.attachment--file.attachment--sql a::before,
+.rtf-formatted-content .attachment.attachment--file.attachment--csv a::before,
+.rtf-formatted-content .attachment.attachment--file.attachment--text a::before {
+    background-image: var(--file-icons__background-image__text);
+    background-color: var(--file-icons__background-color__text);
+}
+
+.rtf-formatted-content .attachment.attachment--file.attachment--docx a::before,
+.rtf-formatted-content .attachment.attachment--file.attachment--doc a::before,
+.rtf-formatted-content .attachment.attachment--file.attachment--odt a::before,
+.rtf-formatted-content .attachment.attachment--file.attachment--pages a::before {
+    background-image: var(--file-icons__background-image__document);
+    background-color: var(--file-icons__background-color__document);
+}
+
+.rtf-formatted-content .attachment.attachment--file.attachment--xlsx a::before,
+.rtf-formatted-content .attachment.attachment--file.attachment--xls a::before,
+.rtf-formatted-content .attachment.attachment--file.attachment--numbers a::before,
+.rtf-formatted-content .attachment.attachment--file.attachment--ods a::before {
+    background-image: var(--file-icons__background-image__spreadsheet);
+    background-color: var(--file-icons__background-color__spreadsheet);
+}
+
+.rtf-formatted-content .attachment.attachment--file.attachment--pdf a::before {
+    background-image: var(--file-icons__background-image__pdf);
+    background-color: var(--file-icons__background-color__pdf);
+}
+
+.rtf-formatted-content .attachment.attachment--file.attachment--pptx a::before,
+.rtf-formatted-content .attachment.attachment--file.attachment--ppt a::before,
+.rtf-formatted-content .attachment.attachment--file.attachment--key a::before,
+.rtf-formatted-content .attachment.attachment--file.attachment--odp a::before {
+    background-image: var(--file-icons__background-image__presentation);
+    background-color: var(--file-icons__background-color__presentation);
+}
+
+.rtf-formatted-content .attachment.attachment--file.attachment--zip a::before {
+    background-image: var(--file-icons__background-image__zip);
+    background-color: var(--file-icons__background-color__zip);
+}
+
+.rtf-formatted-content .attachment.attachment--file.attachment--wmv a::before,
+.rtf-formatted-content .attachment.attachment--file.attachment--mp4 a::before,
+.rtf-formatted-content .attachment.attachment--file.attachment--webm a::before,
+.rtf-formatted-content .attachment.attachment--file.attachment--mkv a::before,
+.rtf-formatted-content .attachment.attachment--file.attachment--ogg a::before,
+.rtf-formatted-content .attachment.attachment--file.attachment--avi a::before,
+.rtf-formatted-content .attachment.attachment--file.attachment--mov a::before {
+    background-image: var(--file-icons__background-image__video);
+    background-color: var(--file-icons__background-color__video);
+}
+
+.rtf-formatted-content .attachment.attachment--file.attachment--mp3 a::before,
+.rtf-formatted-content .attachment.attachment--file.attachment--aac a::before,
+.rtf-formatted-content .attachment.attachment--file.attachment--aiff a::before,
+.rtf-formatted-content .attachment.attachment--file.attachment--flac a::before,
+.rtf-formatted-content .attachment.attachment--file.attachment--m4a a::before,
+.rtf-formatted-content .attachment.attachment--file.attachment--wav a::before {
+    background-image: var(--file-icons__background-image__audio);
+    background-color: var(--file-icons__background-color__audio);
+}
+
+.rtf-formatted-content .attachment.attachment--file.attachment--png a::before,
+.rtf-formatted-content .attachment.attachment--file.attachment--jpg a::before,
+.rtf-formatted-content .attachment.attachment--file.attachment--jpeg a::before,
+.rtf-formatted-content .attachment.attachment--file.attachment--heic a::before,
+.rtf-formatted-content .attachment.attachment--file.attachment--gif a::before,
+.rtf-formatted-content .attachment.attachment--file.attachment--svg a::before,
+.rtf-formatted-content .attachment.attachment--file.attachment--bmp a::before,
+.rtf-formatted-content .attachment.attachment--file.attachment--psd a::before,
+.rtf-formatted-content .attachment.attachment--file.attachment--webp a::before,
+.rtf-formatted-content .attachment.attachment--file.attachment--avif a::before {
+    background-image: var(--file-icons__background-image__image);
+    background-color: var(--file-icons__background-color__image);
+}
+
+
+
+/* ==========================================================================
+   Figcaption
+   ========================================================================== */
+
+.rtf-formatted-content figcaption {
+    color: #777;
+    font-size:13px;
+    margin-top:8px;
+    min-height: 15px;
+}
+
+.rtf-formatted-content a:hover figcaption {
+    text-decoration: none;
+}
+
+
+
+/* ==========================================================================
+   Figcaption Attachment Name
+   ========================================================================== */
+
+.rtf-formatted-content figcaption .attachment__name {
+    display: block;
+    text-align: center;
+}
+
+
+
+/* ==========================================================================
+   Figcaption Attachment Size
+   ========================================================================== */
+
+.rtf-formatted-content figcaption .attachment__size {
+    display: none;
+}

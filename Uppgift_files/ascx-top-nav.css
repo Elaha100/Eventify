@@ -1,0 +1,663 @@
+/* ==========================================================================
+   Top Nav
+   ========================================================================== */
+
+.ascx-top-nav {
+    padding: 10px 0;
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    background-color: #fcf8f3dd;
+    background-color: #faececdd;
+    background-color: #f9f0f0dd;
+    background-color: #fff5f5dd;
+    background-color: #f7f7f7dd;
+    background-color: #f9f9f9dd;
+    background-color: #fcfaf6dd;
+    background-color: #faf5f0dd;
+    background-color: hsl(38 35% 97% / .85);
+    z-index: 100;
+}
+
+.is-mobile .ascx-top-nav {
+    position: relative;
+    padding: 12px 0;
+    z-index: unset;
+}
+
+.is-desktop .ascx-top-nav.SCROLLED {
+    border-bottom: 1px solid rgba(0, 0, 0, .2);
+}
+
+.is-mobile.page-element-fullscreen .ascx-top-nav {
+    display: none;
+}
+
+.print .ascx-top-nav {
+    display: none;
+}
+
+
+
+/* ==========================================================================
+    School Logo
+   ========================================================================== */
+
+.ascx-top-nav__school-logo {
+    position: absolute;
+    left: 12px;
+    top: 0;
+}
+
+
+
+/* ==========================================================================
+    School Logo Icon
+   ========================================================================== */
+
+.ascx-top-nav__school-logo-icon {
+   display: none;
+   width: 36px;
+   height: 36px;
+   background-color: #888;
+   border-radius: 50%;
+   font-size: 7px;
+   color: #fff;
+   text-align:center;
+   line-height: 36px;
+   font-weight: 600;
+   text-transform:uppercase;
+}
+
+
+
+/* ==========================================================================
+   Group Shortcuts
+   ========================================================================== */
+
+.ascx-top-nav__group-shortcuts {
+    position: absolute;
+    left: 6px;
+    top: 10px;
+}
+
+.is-mobile .ascx-top-nav__group-shortcuts {
+    position: absolute;
+    left: 5px;
+    top: 9px;
+}
+
+
+
+/* ==========================================================================
+   Group Shortcuts Button
+   ========================================================================== */
+
+.ascx-top-nav__group-shortcuts-button {
+    cursor: pointer;
+    color: inherit;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    width: 32px;
+    height: 32px;
+    border-radius: 6px;
+}
+
+.ascx-top-nav__group-shortcuts-button:hover {
+    background-color: rgba(0, 0, 0, .04);
+}
+
+.ascx-top-nav__group-shortcuts.EXPANDED .ascx-top-nav__group-shortcuts-button {
+    background-color: rgba(0, 0, 0, .06);
+    color: #000;
+}
+
+
+
+/* ==========================================================================
+   Group Shortcuts Button svg
+   ========================================================================== */
+
+.ascx-top-nav__group-shortcuts-button svg {
+    width: 16px;
+    height: 16px;
+}
+
+
+
+/* ==========================================================================
+   Group Shortcuts Popover
+   ========================================================================== */
+
+.ascx-top-nav__group-shortcuts-popover {
+    font-size: 16px;
+    opacity: 0;
+    visibility: hidden;
+    background-color: #fff;
+    box-shadow: none;
+    border-radius: 6px;
+    width: 420px;
+    position: absolute;
+    top: 40px;
+    left: 0px;
+    margin: 0 auto;
+    padding: 10px 10px;
+    font-size: 14px;
+    transform: scale(.98);
+    transform-origin: top left;
+    font-weight: normal;
+    transition-property: opacity, visibility, transform, box-shadow;
+    z-index: 100;
+    transition-duration: .16s;
+    overflow-y: auto;
+    overscroll-behavior: contain;
+    max-height: calc(100vh - 80px);
+}
+
+.is-mobile .ascx-top-nav__group-shortcuts-popover {
+    position: fixed;
+    left: 4px;
+    right: 4px;
+    top: 56px;
+    width: unset;
+    max-height: calc(100vh - 160px);
+}
+
+@supports not selector(::-webkit-scrollbar) {
+    .ascx-top-nav__group-shortcuts-popover {
+        scrollbar-width: thin;
+        scrollbar-color: rgba(0, 0, 0, .12) rgba(0, 0, 0, .08);
+        scrollbar-color: #d5d5d5 transparent;
+    }
+}
+
+.is-desktop .ascx-top-nav__group-shortcuts-popover::-webkit-scrollbar {
+    width: 6px;
+    background-color: rgba(0, 0, 0, .08);
+    border-radius: 3px;
+}
+
+.is-desktop .ascx-top-nav__group-shortcuts-popover::-webkit-scrollbar-thumb {
+    background-color: rgba(0, 0, 0, .12);
+    border-radius: 3px;
+}
+
+.ascx-top-nav__group-shortcuts.EXPANDED .ascx-top-nav__group-shortcuts-popover {
+    visibility: visible;
+    opacity: 1;
+    box-shadow: 0 10px 24px rgba(0, 0, 0, .2), 0 6px 6px rgba(0, 0, 0, .16);
+    transform: none;
+}
+
+
+
+/* ==========================================================================
+   Group Shortcuts Title
+   ========================================================================== */
+
+.ascx-top-nav__group-shortcuts-popover-title {
+    font-size: 20px;
+    margin: 0;
+    padding: 8px 8px 6px;
+}
+
+
+
+/* ==========================================================================
+   Group Shortcuts No Groups
+   ========================================================================== */
+
+.ascx-top-nav__group-shortcuts-popover-no-groups {
+    display: block;
+    padding: 6px 6px 0px;
+    font-style: italic;
+}
+
+
+
+/* ==========================================================================
+   Group Shortcuts Link
+   ========================================================================== */
+
+.ascx-top-nav__group-shortcuts-popover-group-link {
+    display: block;
+    border-radius: 5px;
+    padding: 6px 8px;
+    cursor: pointer;
+    color: inherit;
+    overflow-wrap: break-word;
+}
+
+.ascx-top-nav__group-shortcuts-popover-group-link:hover {
+    background-color: rgba(0, 0, 0, .06);
+    background-color: rgba(35, 119, 210, .08);
+    text-decoration: none;
+}
+
+.ascx-top-nav__group-shortcuts-popover-group-link.CURRENT {
+    background-color: rgba(0, 0, 0, .08);
+    background-color: rgba(35, 119, 210, .16);
+}
+
+
+
+/* ==========================================================================
+   Group Shortcuts Link span
+   ========================================================================== */
+
+.ascx-top-nav__group-shortcuts-popover-group-link span {
+    color: inherit;
+    display: block;
+    line-height: 1.3;
+    font-size: 15px;
+    font-weight: 600;
+}
+
+
+
+/* ==========================================================================
+   Group Shortcuts Link span+span
+   ========================================================================== */
+
+.ascx-top-nav__group-shortcuts-popover-group-link span + span {
+    font-size: 12px;
+    font-weight: normal;
+    color: #444;
+    text-transform: uppercase;
+}
+
+
+
+/* ==========================================================================
+   Group Shortcuts All Groups
+   ========================================================================== */
+
+.ascx-top-nav__group-shortcuts-popover-all-groups {
+    margin: 14px 0px 0;
+    padding: 8px 0 2px;
+    border-top: 1px solid #ddd;
+}
+
+
+
+/* ==========================================================================
+   Group Shortcuts All Groups Link
+   ========================================================================== */
+
+.ascx-top-nav__group-shortcuts-popover-all-groups-link {
+    color: inherit;
+    padding: 0 2px;
+
+}
+
+
+
+/* ==========================================================================
+    Links
+   ========================================================================== */
+
+.ascx-top-nav__links {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 24px;
+    gap: 18px;
+    gap: 6px;
+    list-style: none;
+    font-size: 16px;
+    font-weight: bold;
+    padding: 0;
+    margin: 0;
+}
+
+.is-mobile .ascx-top-nav__links {
+    font-size: 13px;
+    gap: 4px;
+    font-weight: 600;
+}
+
+
+
+/* ==========================================================================
+    Link Item
+   ========================================================================== */
+
+.ascx-top-nav__link-item {
+    position:relative;
+}
+
+
+
+/* ==========================================================================
+    Link
+   ========================================================================== */
+
+.ascx-top-nav__link {
+    color: #006bdb;
+    text-decoration: none;
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    cursor: pointer;
+    padding: 2px 8px;
+    border-radius: 6px;
+}
+
+.is-mobile .ascx-top-nav__link {
+    flex-direction: column;
+    gap: 0;
+    line-height: 1.4;
+    padding: 4px 8px 2px;
+}
+
+.ascx-top-nav__link:hover {
+    text-decoration: none;
+}
+
+.ascx-top-nav__link-item.EXPANDED .ascx-top-nav__link {
+    color: #000;
+    background-color: rgba(0, 0, 0, .04);
+}
+
+
+
+/* ==========================================================================
+    Unread Badge
+   ========================================================================== */
+
+.ascx-top-nav__unread-badge {
+    position: absolute;
+    top: -5px;
+    left: 14px;
+    font-size: 10px;
+    height: 18px;
+    line-height: 18px;
+    min-width: 18px;
+    box-sizing: border-box;
+    padding: 0 4px;
+    text-align: center;
+    font-weight: bold;
+    background-color: #f34906;
+    background-color: #fd6c44;
+    box-shadow: 0 0 0 .5px #fff;
+    border-radius: 32px; /* Value is cleverly clipped by browser */
+    color: #fff;
+}
+
+.ascx-top-nav__unread-badge.EMPTY {
+    display: none;
+}
+
+.is-mobile .ascx-top-nav__unread-badge {
+    top: -6px;
+    left: 40px;
+    height: 16px;
+    line-height: 16px;
+    min-width: 16px;
+    font-size: 8px;
+}
+
+
+
+
+/* ==========================================================================
+    Notifications Popover
+   ========================================================================== */
+
+.ascx-top-nav__notifications-popover {
+    font-size: 16px;
+    opacity: 0;
+    visibility: hidden;
+    background-color: #fff;
+    box-shadow: none;
+    border-radius: 6px;
+    max-width: 860px;
+    position: fixed;
+    top: 47px;
+    left: 0;
+    right: 0;
+    margin: 0 auto;
+    font-weight: normal;
+    transform: scale(.98);
+    transform-origin: top center;
+    transition-property: opacity, visibility, transform, box-shadow;
+    transition-duration: .16s;
+    z-index: 100;
+    max-height: calc(100vh - 120px);
+    overflow-y: auto;
+    overscroll-behavior: contain;
+}
+
+.is-mobile .ascx-top-nav__notifications-popover {
+    left: 4px;
+    right: 4px;
+    top: 56px;
+    max-height: calc(100vh - 160px);
+    /*border-radius: 6px;*/
+}
+
+@supports not selector(::-webkit-scrollbar) {
+    .ascx-top-nav__notifications-popover {
+        scrollbar-width: thin;
+        scrollbar-color: rgba(0, 0, 0, .12) rgba(0, 0, 0, .08);
+        scrollbar-color: #d5d5d5 transparent;
+    }
+}
+
+.is-desktop .ascx-top-nav__notifications-popover::-webkit-scrollbar {
+    width: 6px;
+    background-color: rgba(0, 0, 0, .08);
+    border-radius: 3px;
+}
+
+.is-desktop .ascx-top-nav__notifications-popover::-webkit-scrollbar-thumb {
+    background-color: rgba(0, 0, 0, .12);
+    border-radius: 3px;
+}
+
+.ascx-top-nav__link-item.EXPANDED .ascx-top-nav__notifications-popover {
+    visibility: visible;
+    opacity: 1;
+    transform: none;
+    box-shadow: 0 10px 24px rgba(0, 0, 0, .2), 0 6px 6px rgba(0, 0, 0, .16);
+}
+
+
+
+/* ==========================================================================
+    Notifications Popover Spinner
+   ========================================================================== */
+
+.ascx-top-nav__notifications-popover-spinner {
+    display: flex;
+    justify-content: center;
+    padding: 1em;
+}
+
+.ascx-top-nav__notifications-popover-spinner-svg {
+    width: 32px;
+    height: 32px;
+}
+
+.ascx-top-nav__notifications-popover-spinner-path {
+    animation: ascx-top-nav__notifications-popover-spinner-animation 1.6s cubic-bezier(.52,.6,.25,.99) infinite;
+}
+
+.ascx-top-nav__notifications-popover-spinner-path.SECOND-PATH {
+    animation-delay: .2s;
+}
+
+.ascx-top-nav__notifications-popover-spinner-path.THIRD-PATH {
+    animation-delay: .4s;
+}
+
+@keyframes ascx-top-nav__notifications-popover-spinner-animation {
+    0% {
+        transform: translate(12px,12px) scale(0);
+        opacity: 1
+    }
+
+    75%,100% {
+        transform: translate(0,0) scale(1);
+        opacity: 0;
+    }
+}
+
+
+
+/* ==========================================================================
+   More Link Items Popover
+   ========================================================================== */
+
+.ascx-top-nav__more-link-items-popover {
+    font-size: 16px;
+    opacity: 0;
+    visibility: hidden;
+    background-color: #fff;
+    box-shadow: none;
+    border-radius: 6px;
+    width: 308px;
+    position: absolute;
+    top: 35px;
+    margin: 0 auto;
+    right: -64px;
+    transform: scale(.98);
+    transform-origin: top center;
+    font-weight: normal;
+    transition-property: opacity, visibility, transform, box-shadow;
+    z-index: 100;
+    transition-duration: .16s;
+}
+
+.ascx-top-nav__link-item.EXPANDED .ascx-top-nav__more-link-items-popover {
+    visibility: visible;
+    opacity: 1;
+    box-shadow: 0 10px 24px rgba(0, 0, 0, .2), 0 6px 6px rgba(0, 0, 0, .16);
+    transform: none;
+}
+
+.is-mobile .ascx-top-nav__more-link-items-popover {
+    top: 56px;
+    left: 0;
+    right: 0;
+    position: fixed;
+    box-sizing: border-box;
+}
+
+.is-mobile .ascx-top-nav__more-link-items-popover:before {
+    right: 57px;
+   display: none;
+}
+
+.is-mobile .ascx-top-nav__more-link-items-popover:after {
+    display: none;
+    right: 58px;
+}
+
+
+
+/* ==========================================================================
+   More Link Items Popover Content
+   ========================================================================== */
+
+.ascx-top-nav__more-link-items-popover-content {
+    padding: 12px;
+}
+
+
+
+/* ==========================================================================
+   More Link Items Popover Empty
+   ========================================================================== */
+
+.ascx-top-nav__more-link-items-popover-empty {
+    text-align: center;
+    display: none;
+    padding: .6em 0;
+    font-style: italic;
+}
+
+.ascx-top-nav__more-link-items-popover-content.EMPTY .ascx-top-nav__more-link-items-popover-empty {
+    display: block;
+}
+
+
+
+/* ==========================================================================
+    More Link Items 
+   ========================================================================== */
+
+.ascx-top-nav__more-link-items {
+    list-style: none;
+    padding: 0;
+}
+
+
+
+/* ==========================================================================
+    More Link Item
+   ========================================================================== */
+
+.ascx-top-nav__more-link-item {
+    display: block;
+}
+
+
+
+/* ==========================================================================
+    More Link
+   ========================================================================== */
+
+.ascx-top-nav__more-link {
+    display: flex;
+    flex: 1;
+    border-radius: 4px;
+    align-items: center;
+    gap: 10px;
+    padding: 4px 8px;
+    transition: all .1s;
+    color: inherit;
+}
+
+.ascx-top-nav__more-link:hover {
+    background-color: hsla(0, 0%, 0%, 0.08);
+    text-decoration: none;
+}
+
+
+
+/* ==========================================================================
+    Admin Links
+   ========================================================================== */
+
+.ascx-top-nav__admin-links {
+    margin: 16px -16px 0;
+    padding: 0 16px;
+    border-top: 1px solid #ddd;
+}
+
+
+
+/* ==========================================================================
+    Admin Links Title
+   ========================================================================== */
+
+.ascx-top-nav__admin-links-title {
+    font-weight: bold;
+    margin: 12px 8px 0;
+    display: block;
+}
+
+
+
+/* ==========================================================================
+    User Avatar
+   ========================================================================== */
+
+.ascx-top-nav__user-avatar {
+    position: absolute;
+    right: 8px;
+    top: 8px;
+}

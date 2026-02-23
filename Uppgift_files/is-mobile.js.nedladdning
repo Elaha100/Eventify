@@ -1,0 +1,45 @@
+﻿'use strict';
+
+(function () {
+
+    const cmp = LearnPoint.createComponent('is-mobile');
+
+    const Event = {
+        CHANGE: 'is-mobile__change'
+    }
+    cmp['Event'] = Event;
+
+    const query = matchMedia('(max-width: 768px)');
+
+    window.isMobile = false;
+    window.isDesktop = true;
+
+    // ----------------------------------------------------------------------------
+
+    setScreenMode(false);
+    query.addEventListener('change', setScreenMode);
+
+    // ----------------------------------------------------------------------------
+
+    function setScreenMode(dispatch = true) {
+        if (window.isMobile === query.match) {
+            return;
+        }
+
+        window.isMobile = query.matches ? true : false;
+        window.isDesktop = query.matches ? false : true;
+
+        document.documentElement.classList.remove('is-desktop', 'is-mobile');
+        document.documentElement.classList.add(query.matches ? 'is-mobile' : 'is-desktop');
+
+        if (!dispatch) {
+            return;
+        }
+
+        console.log('Switched to', query.matches ? 'mobile.' : 'desktop.');
+
+        const changeEvent = new CustomEvent(Event.CHANGE, { 'bubbles': true });
+        document.documentElement.dispatchEvent(changeEvent);
+    }
+
+})();

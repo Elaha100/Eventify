@@ -1,0 +1,175 @@
+'use strict';
+
+(function () {
+
+    var cmp = LearnPoint.createComponent('webforms-validator');
+
+    // ------------------------------------------------------------------------
+
+    var Selector = {
+        COMPONENT: cmp.componentSelector(),
+        INVALID_INPUT: '.VALIDATION-ERROR, .telerik-datepicker .riError',
+        TELERIK_DATEPICKER: '.telerik-datepicker'
+    }
+
+    // ------------------------------------------------------------------------
+
+    var ClassName = {
+        VALIDATION_ERROR: 'VALIDATION-ERROR'
+    }
+
+    // ------------------------------------------------------------------------
+
+    window.addEventListener('load', validateAll);
+    document.addEventListener("submit", validateAll);
+    document.addEventListener("change", validateAll);
+    document.addEventListener('DOMContentLoaded', function () {
+        Sys.WebForms.PageRequestManager.getInstance().add_endRequest(validateAll);
+    });
+
+    // ------------------------------------------------------------------------
+
+    function validateAll() {
+
+        if (!window.Page_Validators) {
+            return;
+        }
+
+
+        var inputs = {};
+
+        for (var i = 0; i < window.Page_Validators.length; i++) {
+
+            if (!window.Page_Validators[i].controltovalidate) {
+                console.warn('Validator ' + window.Page_Validators[i].id + ' does not belong to any input.');
+                continue;
+            }
+
+            if (!document.getElementById(window.Page_Validators[i].controltovalidate)) {
+                console.warn('Input element for validator not found. Given Id for the input: ' + window.Page_Validators[i].controltovalidate);
+                continue;
+            }
+
+            if (!window.Page_Validators[i].isvalid) {
+                inputs[window.Page_Validators[i].controltovalidate] = {
+                    valid: false,
+                    validatorId: Page_Validators[i].id
+                };
+
+            } else {
+                // Only add if property not already added
+                if (!inputs.hasOwnProperty(window.Page_Validators[i].controltovalidate)) {
+                    inputs[window.Page_Validators[i].controltovalidate] = {
+                        valid: true,
+                        validatorId: Page_Validators[i].id
+                    };
+                }
+            }
+        }
+
+
+        var inputElement;
+        for (var key in inputs) {
+
+            inputElement = document.getElementById(key);
+
+            if (inputs[key].valid === true) {
+
+                setValidationState(inputElement, true, inputs[key].validatorId);
+
+            } else {
+
+                setValidationState(inputElement, false, inputs[key].validatorId);
+            }
+        }
+
+
+        var firstInvalidInput = document.querySelector(Selector.INVALID_INPUT);
+        if (firstInvalidInput) {
+
+            console.log('Will put focus on ' + Utils.eltos(firstInvalidInput));
+            // Last focus wins so lets arrive late to the party.
+            window.setTimeout(function () {
+                firstInvalidInput.focus();
+            }, 10);
+        }
+    }
+
+    cmp['validateAll'] = validateAll;
+
+    // ------------------------------------------------------------------------
+
+    function setValidationState(element, valid, validatorId) {
+
+        if (!element) {
+            return;
+        }
+
+        if (isTelerikDatePicker(element)) {
+
+            setValidationClassForTelerikDatePicker(element, valid);
+
+        } else {
+
+            if (valid) {
+
+                element.classList.remove(ClassName.VALIDATION_ERROR);
+                element.removeAttribute("aria-invalid");
+                element.removeAttribute("aria-errormessage");
+
+            } else {
+
+                element.classList.add(ClassName.VALIDATION_ERROR);
+                element.setAttribute("aria-invalid", "true");
+                element.setAttribute("aria-errormessage", validatorId);
+            }
+        }
+    }
+
+    // ------------------------------------------------------------------------
+
+    function setValidationClassForTelerikDatePicker(element, valid) {
+
+        /* 
+         * Telerik DatePicker hides the input element that ASP.NET validates
+         * and creates another input that is visible to the user.
+         * 
+         * We want to style the visible input, not the hidden one.
+         * 
+         * Telerik will automatically add its own css class (.riError) on
+         * the visible input when validation fails. But ONLY for its internal
+         * validation (like date format for example). It will NOT add the
+         * css class when ASP.NET validation fails.
+         * 
+         * This method will do this - tell Telerik to set the correct 
+         * css class depending on the ASP.NET validator result.
+         * 
+         * Note that we can't just add our own css class here (.VALIDATION-ERROR).
+         * This is because Telerik overwrites the whole class attribute and we
+         * don't know exactly when that happens (our class might be overwritten).
+         * 
+         * https://www.telerik.com/forums/raddatepicker-required-validation-using-radinputmanager
+         */
+
+        var DatePicker = $find(element.id);
+        if (!DatePicker) {
+            return;
+        }
+
+        var dateInput = DatePicker.get_dateInput();
+        if (!dateInput) {
+            return;
+        }
+
+        dateInput._invalid = !valid;
+        dateInput.updateCssClass();
+    }
+
+    // ------------------------------------------------------------------------
+
+    function isTelerikDatePicker(element) {
+
+        return element.parentNode.matches(Selector.TELERIK_DATEPICKER);
+    }
+
+})();

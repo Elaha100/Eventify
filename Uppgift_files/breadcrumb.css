@@ -1,0 +1,307 @@
+﻿/* ==========================================================================
+   Breadcrumb
+   ========================================================================== */
+
+.breadcrumb {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 1px 6px;
+    font-size: 15px;
+    /*min-height: 22px;*/ /* Should have height even when empty. */
+    padding: 12px 16px;
+    padding: 12px 16px 0;
+    font-size: 14px;
+}
+
+.is-mobile .breadcrumb {
+    gap: 4px 4px;
+}
+
+.breadcrumb.HIDDEN {
+    opacity: 0;
+    display: none;
+}
+
+
+
+/* ==========================================================================
+   Node
+   ========================================================================== */
+
+.breadcrumb > * {
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    display: flex; /* Flex needed for mobile where we insert svg using ::before. */
+    align-items: center;
+    gap: 2px;
+    color: inherit;
+
+    color: #888;
+}
+
+/* Last node shouldn't look like a link, but don't style if last
+   node happens to be a shortcuts-select */
+.breadcrumb > *:last-child:not(.breadcrumb__shortcuts-select-button) {
+    cursor: default;
+    /*color: inherit;*/
+    text-decoration: none;
+    pointer-events: none;
+}
+
+
+
+/* ==========================================================================
+   Mobile Node
+   ========================================================================== */
+
+/* This will hide all nodes except 3rd from end, the link to "previous" page. */
+.is-mobile .breadcrumb > *:not(*:nth-last-child(3)) {
+    display: none;
+}
+
+.is-mobile .breadcrumb *:nth-last-child(3)::before {
+    content: '';
+    background-image: url(/Images/svg-icons/chevron-left-0079f2.svg);
+    background-image: url(/Images/svg-icons/chevron-left.svg);
+    height: 1.4em;
+    width: 1.4em;
+    height: 1em;
+    width: 1em;
+    flex-shrink: 0;
+    background-size: cover;
+    background-color: rgba(255, 255, 255, 0.5);
+    background-blend-mode: lighten;
+}
+
+
+
+/* ==========================================================================
+   Shortcuts Select Button (Dropdown)
+   ========================================================================== */
+
+.breadcrumb__shortcuts-select-button,
+.breadcrumb__shortcuts-select-button:focus {
+    position: relative;
+    overflow: visible;
+    background-color: transparent;
+    border: none;
+    cursor: default;
+    font-family: inherit;
+    font-size: inherit;
+    font-weight: normal;
+    line-height: inherit;
+    outline: none;
+    padding: 0 3px 0 4px; /* Make room for :hover outline. */
+    margin: 0 0 0 -4px; /* Restore distance to previous node. */
+    border-radius: 3px;
+    text-align: left;
+    text-decoration: none;
+    -moz-appearance: none;
+    -webkit-appearance: none;
+    vertical-align: baseline;
+}
+
+.is-desktop .breadcrumb__shortcuts-select-button.ENABLED:hover,
+.breadcrumb__shortcuts-select-button.ENABLED.EXPANDED {
+    outline: #ccc solid 1px;
+    background-color: rgba(255,255,255,.7);
+}
+
+.breadcrumb__shortcuts-select-button.ENABLED > span {
+    display: block;
+    cursor: pointer;
+    background-image: url('/Images/svg-icons/chevron-expand-000000.svg');
+    background-repeat: no-repeat;
+    background-position: right 60%;
+    background-size: .9em;
+    padding: 0 1.1em 0 0;
+    background-color: rgba(255, 255, 255, 0.5);
+    background-blend-mode: lighten;
+}
+
+
+
+/* ==========================================================================
+   Shortcuts
+   ========================================================================== */
+
+.breadcrumb__shortcuts {
+    position: absolute;
+    width: 414px;
+    max-height: 736px; /* NOTE: Ajusted in javascript on vertical overflow. */
+    overflow-y: auto;
+    opacity: 0;
+    pointer-events: none;
+    top: 26px;
+    left: 50%; /* NOTE: margin-left is adjusted in javascript on horizontal overflow */
+    transform: scale(.96) translateX(-50%);
+    background-color: #fff;
+    box-shadow: 1px 2px 4px rgba(0,0,0,.08), 2px 4px 8px rgba(0,0,0,.08), 4px 8px 16px rgba(0,0,0,.08), 8px 16px 32px rgba(0,0,0,.08);
+    border-radius: 4px;
+    transform-origin: top left;
+    transition-duration: .08s;
+    transition-property: opacity, transform;
+    z-index: 2;
+}
+
+.breadcrumb__shortcuts-select-button.ENABLED.EXPANDED .breadcrumb__shortcuts {
+    opacity: 1;
+    transform: translateX(-50%);
+    pointer-events: auto;
+}
+
+
+
+/* ==========================================================================
+   Shortcuts Scrollbar
+   ========================================================================== */
+
+/* Firefox only supports scrollbar-color and scrollbar-width. */
+.breadcrumb__shortcuts {
+    scrollbar-color: rgba(0,0,0,.1) rgba(0,0,0,.04);
+    scrollbar-width: thin;
+}
+
+/* Blink and WebKit uses pseudo selectors instead. */
+.breadcrumb__shortcuts::-webkit-scrollbar {
+    width: 8px;
+}
+
+.breadcrumb__shortcuts::-webkit-scrollbar-track {
+    background-color: rgba(0,0,0,.04);
+    border-radius: 4px;
+}
+
+.breadcrumb__shortcuts::-webkit-scrollbar-thumb {
+    border-radius: 4px;
+    background-color: rgba(0,0,0,.1);
+}
+
+
+
+/* ==========================================================================
+   Shortcuts Item
+   ========================================================================== */
+
+.breadcrumb__shortcuts-item {
+    display: flex;
+    overflow: hidden;
+    align-items: center;
+    justify-content: space-between;
+    gap: 0 8px;
+    border-bottom: 1px solid #e5e5e5;
+    padding: 0 8px;
+    height: 42px;
+    font-size: 13px;
+    text-decoration: none;
+    color: inherit;
+    color: #323C46;
+}
+
+.breadcrumb__shortcuts-item:last-child {
+    border-bottom: none;
+}
+
+.is-desktop .breadcrumb__shortcuts-item:hover {
+    background-color: rgba(0,0,0,.03);
+    text-decoration: none;
+}
+
+.breadcrumb__shortcuts-item.CURRENT,
+.is-desktop .breadcrumb__shortcuts-item.CURRENT:hover {
+    background-color: rgba(0,0,0,.1);
+}
+
+
+
+/* ==========================================================================
+   Shortcuts Grow 
+   ========================================================================== */
+
+.breadcrumb__shortcuts-grow {
+    flex-grow: 1;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    line-height: 1.3;
+}
+
+
+
+/* ==========================================================================
+   Shortcuts Flex
+   ========================================================================== */
+
+.breadcrumb__shortcuts-flex {
+    display: flex;
+    align-items: center;
+}
+
+
+
+/* ==========================================================================
+   Restoring State
+   ========================================================================== */
+
+.breadcrumb__restoring-state {
+    opacity: 0;
+}
+
+
+
+/* ==========================================================================
+   Return Target (highlight on click)
+   ========================================================================== */
+
+[data-property*="breadcrumb.return-target-id"]:focus-within {
+    background-color: rgba(0,0,0,.04);
+}
+
+
+
+/* ==========================================================================
+   Highlight
+   ========================================================================== */
+
+.breadcrumb__highlight {
+    animation-duration: 1.6s;
+    animation-name: breadcrumb__highlight;
+    animation-timing-function: linear;
+}
+
+@keyframes breadcrumb__highlight {
+    from {
+        background-color: rgba(0,0,0,.08);
+    }
+
+    to {
+        background-color: rgba(0,0,0,0);
+    }
+}
+
+
+
+/* ==========================================================================
+   Breadcrumb supervisor
+   ========================================================================== */
+
+.breadcrumb__supervisor {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 1px 6px;
+    font-size: 15px;
+    padding: 16px;
+}
+
+.breadcrumb__supervisor > a:before {
+    content: " ";
+    display: inline-block;
+    height: 1.4em;
+    width: 1.4em;
+    vertical-align: text-bottom;
+    background-image: url(/Images/svg-icons/chevron-left-0079f2.svg);
+    background-size: cover;
+}
+
+

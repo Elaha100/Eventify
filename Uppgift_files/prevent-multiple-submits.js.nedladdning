@@ -1,0 +1,106 @@
+﻿'use strict';
+
+(function () {
+
+
+    var cmp = LearnPoint.createComponent('prevent-multiple-submits');
+
+
+    /* =====================================================================
+       Selectors
+       ===================================================================== */
+
+    var Selector = {
+        SKIP_PREVENTION: cmp.elementSelector('skip-prevention'),
+        // mailto links will trigger unload event, but the browser does not navigate.
+        // We cannot set unloading = true, because the browser would get stuck.
+        // https://stackoverflow.com/questions/9740510/mailto-link-in-chrome-is-triggering-window-onbeforeunload-can-i-prevent-this
+        AUTO_SKIP_PREVENTION: 'a[href^=mailto], a[download]'
+    }
+
+
+
+    /* =====================================================================
+       Variables
+       ===================================================================== */
+
+    var unloading = false;
+    var trySubmitFailedCount = 0;
+    var lastClickedElement = null;
+    console.debug('Fresh page, submit allowed');
+
+
+
+    /* =====================================================================
+       Track lastClickedElement (instead of activeElement)
+       ===================================================================== */
+
+    document.addEventListener('click', function (event) {
+        lastClickedElement = event.target;
+    });
+
+
+
+    /* =====================================================================
+       OnSubmit
+       ===================================================================== */
+
+    function TrySubmit() {
+
+        if (unloading) {
+
+            console.log('Prevented submit because document is unloading');
+
+            trySubmitFailedCount++;
+
+            if (trySubmitFailedCount >= 2 && !LearnPoint.FlashMessage.IsOpen()) {
+
+                LearnPoint.FlashMessage.Show('Vänta, sidan är upptagen...', 'Om du upplever problem kan du prova att <a href="javascript:window.location = window.location.href;">uppdatera sidan</a>', { permanent: true });
+            }
+            return false;
+        }
+
+        return true;
+    }
+    cmp['TrySubmit'] = TrySubmit;
+
+
+
+    /* =====================================================================
+       Set in submitting state
+       ===================================================================== */
+
+    window.addEventListener("beforeunload", function (event) {
+
+        if (lastClickedElement && lastClickedElement.closest(Selector.SKIP_PREVENTION)) {
+
+            console.log('Skipped prevention because lastClickedElement inside SKIP_PREVENTION');
+
+        } else if (lastClickedElement && lastClickedElement.closest(Selector.AUTO_SKIP_PREVENTION)) {
+
+            console.log('Skipped prevention because lastClickedElement inside AUTO_SKIP_PREVENTION');
+
+        } else {
+
+            console.debug('Page unloading, submits will be prevented');
+            unloading = true;
+        }
+
+    });
+
+
+
+    /* =====================================================================
+       Pageshow
+       ===================================================================== */
+
+    window.addEventListener('pageshow', function (event) {
+
+        // event fired when user navigates back
+        unloading = false;
+        trySubmitFailedCount = 0;
+        lastClickedElement = null;
+    });
+
+
+})();

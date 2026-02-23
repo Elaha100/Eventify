@@ -1,0 +1,138 @@
+﻿'use strict';
+
+(function () {
+
+    const cmp = LearnPoint.createComponent('ajax-progress');
+
+    const Selector = {
+        PANEL: cmp.componentSelector(),
+        TRIGGER: cmp.elementSelector('trigger'),
+        SPINNER: cmp.elementSelector('spinner')
+    }
+
+    const ClassName = {
+        NO_SPINNER: 'NO-SPINNER',
+        LOADING: 'LOADING',
+        ERROR: 'ERROR',
+        DONE: 'DONE'
+    }
+
+    // ---------------------------------------------------------------------
+
+    document.addEventListener('DOMContentLoaded', function () {
+        Sys.WebForms.PageRequestManager.getInstance().add_beginRequest(AjaxProgress_Loading);
+        Sys.WebForms.PageRequestManager.getInstance().add_endRequest(AjaxProgress_Done);
+    });
+
+    function AjaxProgress_Loading(sender, args) {
+
+        // Set trigger in loading state
+
+        const trigger = LearnPoint.Main.getPostBackElement();
+        if (trigger && trigger.matches(Selector.TRIGGER)) {
+            trigger.classList.add(ClassName.LOADING);
+        }
+
+        // Set panels in loading state & add spinners
+
+        const panels = LearnPoint.Main.getUpdatePanels();
+        for (const panel of panels) {
+            if (!panel.matches(Selector.PANEL)) {
+                continue;
+            }
+
+            panel.classList.add(ClassName.LOADING);
+
+
+            if ((trigger && trigger.classList.contains(ClassName.NO_SPINNER))) {
+                continue; // Don't add spinner
+            }
+
+            if (panel.classList.contains(ClassName.NO_SPINNER)) {
+                continue; // Don't add spinner
+            }
+
+            // Add spinner
+            const spinner = createSpinner(panel);
+            document.body.appendChild(spinner);
+        }
+    }
+
+    function AjaxProgress_Done(sender, args) {
+
+        const hasError = args.get_error() != undefined;
+
+
+        // 1. Handle error
+        if (hasError) {
+            const errorMessage = args.get_error().message;
+            args.set_errorHandled(true);
+            console.error('Ajax Error: ' + errorMessage);
+            LearnPoint.FlashMessage.Show('Ett fel inträffade', '');
+        }
+
+
+        // 2. Spinners done
+        const spinners = document.querySelectorAll(Selector.SPINNER);
+        for (const spinner of spinners) {
+            spinner.classList.add(ClassName.DONE);
+        }
+
+
+        // 3. Triggers done
+        const trigger = LearnPoint.Main.getPostBackElement();
+        if (trigger && trigger.matches(Selector.TRIGGER)) {
+            trigger.classList.remove(ClassName.LOADING);
+            trigger.classList.add(ClassName.DONE);
+        }
+
+
+        // 4. Panels done
+        const panels = document.querySelectorAll(Selector.PANEL);
+        for (const panel of panels) {
+            panel.classList.remove(ClassName.LOADING);
+        }
+
+
+        // 5. Clean up
+        setTimeout(function () {
+
+            // Triggers
+            const triggers = document.querySelectorAll(Selector.TRIGGER);
+            for (const trigger of triggers) {
+                trigger.classList.remove(ClassName.DONE);
+            }
+
+            // Spinners
+            const spinners = document.querySelectorAll(Selector.SPINNER);
+            for (const spinner of spinners) {
+                spinner.remove();
+            }
+
+        }, 1000);
+    }
+
+    // ---------------------------------------------------------------------
+
+    function createSpinner(panel) {
+        const rect = panel.getBoundingClientRect();
+
+        const padding = 4;
+
+        let style = `top:${rect.top - padding + window.scrollY}px; left:${rect.left - padding + window.scrollX}px; width:${rect.width + 2 * padding}px; height:${rect.height + 2 * padding}px;`;
+
+        if (isMobile) {
+            style = `position:fixed;top:0;left:0;right:0;bottom:0;width:100vw; height:100vh;`;
+        }
+
+        const html = `<div data-element="ajax-progress.spinner" class="ajax-progress__spinner" style="${style}">
+                          <span></span>
+                          <span></span>
+                          <span></span>
+                      </div>`;
+
+        return Utils.createElementFromHtml(html);
+    }
+
+
+})();

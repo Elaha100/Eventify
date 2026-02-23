@@ -1,0 +1,911 @@
+﻿'use strict';
+
+/*  ===========================================================================
+
+    Utils should not depend on other components.
+    Function should be as self-contained as possible.
+    
+    =========================================================================== */
+
+const Utils = {};
+
+
+
+/* =====================================================================
+   noop
+   ===================================================================== */
+
+Utils.noop = function () { };
+
+
+
+/* =====================================================================
+   Event
+   ===================================================================== */
+
+Utils.Event = {
+    NOTIFICATION_SOURCE_VISIT: 'Utils.NotificationSourceVisit',
+    NOTIFICATIONS_UNREAD_COUNT_CHANGE: 'Utils.NotificationsUnreadCountChange',
+    USER_ACTIVE: 'Utils.UserActive'
+}
+
+
+
+/* =====================================================================
+   eltos
+   ===================================================================== */
+
+Utils.eltos = function (element) {
+
+    // Custom truncate string helper function
+    const truncateString = (str, maxLength = 20) => {
+        if (!str) {
+            return ""; // Explicit empty to avoid "null" or "undefined"
+        }
+
+        if (str.length <= maxLength) {
+            return str;
+        }
+
+        const partLength = Math.floor((maxLength / 2) - 1.5);
+
+        let truncatedString = str.substr(0, partLength).trim();
+        truncatedString += "...";
+        truncatedString += str.substring(str.length - partLength).trim();
+
+        return truncatedString;
+    }
+
+
+    // Call and return the default toString() value if the element arg does not behave like an element
+    if (!element.tagName || !element.getAttribute) {
+        return element.toString();
+    }
+
+
+    // Add class attribute
+    let classAttribute = truncateString(element.getAttribute('class'), 40);
+    if (classAttribute) {
+        classAttribute = ` class="${classAttribute}"`;
+    }
+
+
+    // Add title attribute if no class
+    let titleAttribute = truncateString(element.getAttribute('title'), 20);
+    if (!classAttribute && titleAttribute) {
+        titleAttribute = ` title="${titleAttribute}"`;
+    } else {
+        titleAttribute = "";
+    }
+
+
+    // Add data-element attribute if no class or title
+    let dataElementAttribute = truncateString(element.getAttribute('data-element'), 40);
+    if (!classAttribute && !titleAttribute && dataElementAttribute) {
+        dataElementAttribute = ` data-element="${dataElementAttribute}"`;
+    } else {
+        dataElementAttribute = "";
+    }
+
+
+    // Add id attribute if no class or title or data-element
+    let idAttribute = truncateString(element.getAttribute('id'), 40);
+    if (!classAttribute && !titleAttribute && !dataElementAttribute && idAttribute) {
+        idAttribute = ` id="${idAttribute}"`;
+    } else {
+        idAttribute = "";
+    }
+
+
+    return `<${element.tagName.toLowerCase()}${classAttribute}${titleAttribute}${dataElementAttribute}${idAttribute}>`;
+};
+
+
+
+/* =====================================================================
+   Throttle and Debounce Decorators
+   ===================================================================== */
+
+Utils.throttle = function (func, wait) {
+
+    var timeout = null;
+    var last_called_at = 0;
+
+    var throttled = function () {
+
+        var context = this;
+        var args = arguments;
+        var now = Date.now();
+        var delay;
+
+        // Too early?
+        if ((last_called_at + wait) > now) {
+
+            if (timeout) {
+                console.debug('Throttled', func.name);
+                clearTimeout(timeout);
+            }
+
+            delay = wait - (now - last_called_at);
+
+            timeout = setTimeout(function () {
+                last_called_at = Date.now();
+                timeout = null;
+                func.apply(context, args);
+            }, delay);
+
+        } else {
+
+            last_called_at = Date.now();
+            func.apply(context, args);
+        }
+
+    };
+
+    return throttled;
+};
+
+Utils.debounce = function (func, wait) {
+
+    var timeout = null;
+
+    var debounced = function () {
+
+        var context = this;
+        var args = arguments;
+
+        if (timeout) {
+            console.debug('Debounced', func.name);
+            clearTimeout(timeout);
+        }
+
+        timeout = setTimeout(function () {
+            timeout = null;
+            func.apply(context, args);
+        }, wait);
+
+    };
+
+    return debounced;
+};
+
+
+
+/* =====================================================================
+   Require Script
+   ===================================================================== */
+
+Utils.src = document.currentScript.src; // Must be done on initial processing
+
+Utils.requireScript = function (src, callback) {
+
+    const applicationVersion = Utils.urlGetParam(Utils.src, 'av');
+
+    if (src.indexOf('?') === -1) {
+        src = src + '?av=' + applicationVersion;
+    }
+
+    var scriptElementAlreadyInDom = document.querySelector('script[src="' + src + '"]');
+
+    if (scriptElementAlreadyInDom) {
+        console.log('Will not require script ' + src + '. Script tag already in DOM.');
+    }
+
+    var scriptElement = document.createElement('script');
+    if (callback && typeof callback === 'function') {
+        scriptElement.onload = callback;
+    }
+    scriptElement.async = false;
+    scriptElement.src = src;
+    document.head.appendChild(scriptElement);
+}
+
+
+
+/* =====================================================================
+   DOM Utils
+   ===================================================================== */
+
+Utils.overflows = function (element) {
+
+    return element.offsetWidth < element.scrollWidth;
+};
+
+Utils.scrollbarWidths = function (element) {
+
+    var scrollbarWidths = {
+        'vertical': 0,
+        'horizontal': 0
+    };
+
+    // REQUIREMENTS: 
+    // 1)  border-left-width == border-right-width
+    // 2)  border-top-width == border-bottom-width
+
+    if (element) {
+
+        scrollbarWidths.vertical = (element.offsetWidth - element.clientWidth - 2 * element.clientLeft);
+        scrollbarWidths.horizontal = (element.offsetHeight - element.clientHeight - 2 * element.clientTop);
+
+    } else {
+
+        var scrollDiv = document.createElement("div");
+
+        scrollDiv.style.width = '100px';
+        scrollDiv.style.height = '100px';
+        scrollDiv.style.overflow = 'scroll';
+        scrollDiv.style.position = 'absolute';
+        scrollDiv.style.top = '-9999px';
+        scrollDiv.style.left = '-9999px';
+
+        document.body.appendChild(scrollDiv);
+
+        scrollbarWidths.vertical = scrollDiv.offsetWidth - scrollDiv.clientWidth;
+        scrollbarWidths.horizontal = scrollDiv.offsetHeight - scrollDiv.clientHeight;
+
+        document.body.removeChild(scrollDiv);
+    }
+
+    return scrollbarWidths;
+};
+
+Utils.indexOfElement = function (element) {
+
+    var parent = element.parentNode;
+
+    var i = parent.children.length - 1;
+    for (; i >= 0; i--) {
+        if (element == parent.children[i]) {
+            break;
+        }
+    }
+    return i;
+};
+
+Utils.createElementFromHtml = function (html) {
+
+    // REQUIREMENT: Single root element in html markup
+    // createElementFromHtml('<div></div><p></p>'); => Will not work
+    // createElementFromHtml('<div><p></p></div>'); => OK
+
+    var template = document.createElement('template');
+    template.innerHTML = html.trim();
+    return template.content.firstChild;
+};
+
+Utils.getScrollPosition = function () {
+    return scrollY;
+}
+
+Utils.setScrollPosition = function (scrollPosition) {
+    scroll(0, scrollPosition);
+}
+
+Utils.getUnsupportedFeatures = function (document) {
+
+    /**
+     * Polyfilled features that cannot be tested:
+     * - Element.prototype.classList
+     * - Element.prototype.closest
+     * - CustomEvent
+     * - Object.assign()
+     */
+
+    var unsupportedFeatures = [];
+
+    if (!document) {
+        console.error('Error: parameter document is null');
+        return unsupportedFeatures;
+    }
+
+    if (!document.documentElement) {
+        unsupportedFeatures.push('document.documentElement');
+        return unsupportedFeatures; // no need to continue from here
+    }
+
+    if (!document.documentElement.style) {
+        unsupportedFeatures.push('document.documentElement.style');
+    }
+
+    if (document.documentElement.style.flex === undefined) {
+        unsupportedFeatures.push('document.documentElement.style.flex');
+    }
+
+    if (document.documentElement.style.transition === undefined) {
+        unsupportedFeatures.push('document.documentElement.style.transition');
+    }
+
+    if (typeof window.requestAnimationFrame !== 'function') {
+        unsupportedFeatures.push('window.requestAnimationFrame');
+    }
+
+    if (typeof window.fetch !== 'function') {
+        unsupportedFeatures.push('window.fetch');
+    }
+
+    if (!('classList' in Element.prototype)) {
+        unsupportedFeatures.push('element.classList');
+    }
+
+    if (typeof Element.prototype.closest !== 'function') {
+        unsupportedFeatures.push('element.closest');
+    }
+
+    if (!Object.assign) {
+        unsupportedFeatures.push('Object.assign');
+    }
+
+    return unsupportedFeatures;
+};
+
+
+
+/* =====================================================================
+   Transformations & Conversions
+   ===================================================================== */
+
+Utils.hyphensToPascal = function (hyphens) {
+
+    // simple-confirm => SimpleConfirm
+
+    var empty = "";
+
+    if (typeof hyphens !== 'string') {
+        return empty;
+    }
+
+    if (!hyphens) {
+        return empty;
+    }
+
+    var parts = hyphens.split('-');
+
+    for (var i = 0; i < parts.length; i++) {
+        parts[i] = parts[i].charAt(0).toUpperCase() + parts[i].slice(1);
+    }
+
+    return parts.join('');
+
+};
+
+Utils.pascalToHyphens = function (pascal) {
+
+    // SimpleConfirm => simple-confirm
+
+    return pascal.replace(/([a-z])([A-Z])/g, '$1-$2').toLowerCase();
+};
+
+Utils.unicodeToBase64 = function (string) {
+    const codeUnits = new Uint16Array(string.length);
+    for (let i = 0; i < codeUnits.length; i++) {
+        codeUnits[i] = string.charCodeAt(i);
+    }
+    return btoa(String.fromCharCode(...new Uint8Array(codeUnits.buffer)));
+}
+
+Utils.stringToIntegerOrNull = function (input) {
+
+    // There are many string-to-integer functions, but this function only
+    // convert strings that are OBVIOUS integers. If the string input is
+    // not obviously an integer, null is returned.
+    //
+    // For example "parseInt()" would return 404 given the input
+    // "404 Not Found". But this function would return null, because
+    // "404 Not Found" is not OBVIOUSLY an integer.
+    //
+    // IMPORTANT NOTE - The input is trimmed before conversion! The
+    // input " 7 " could is some contexts be considered NOT to be an
+    // obvious integer, but in this function, it is treated exactly
+    // as the input "7".
+    //
+    // If the input is an actual integer, the function returns that integer.
+
+
+    // Integer passthrough. Note that decimal numbers can sometimes be
+    // treated as integers. For example, 4.0 is treated as an integer.
+
+    if (typeof input === 'number' && Number.isInteger(input)) {
+        return input;
+    }
+
+
+    // Don't convert anything but strings. Booleans, objects,
+    // and arrays are not OBVIOUS integers.
+
+    if (typeof input !== 'string') {
+        return null;
+    }
+
+
+    // Don't allow empty string. An empty string is not OBVIOUSLY an integer.
+
+    const trimmedInput = input.trim();
+    if (trimmedInput === '') {
+        return null;
+    }
+
+
+    // Convert to integer.
+
+    const integerValue = parseInt(trimmedInput);
+
+
+    // If NaN, then parsing failed.
+
+    if (isNaN(integerValue)) {
+        return null;
+    }
+
+
+    // The string representation of the integer must match
+    // the trimmed input. Othervise the trimmed input was not
+    // obviously an integer.
+
+    if (integerValue.toString() !== trimmedInput) {
+        return null;
+    }
+
+    return integerValue;
+}
+
+Utils.stringToIntegerOrNull_test = function () {
+
+    // Table with inputs and expected outputs.
+    // Null outputs represent conversion failure.
+
+    const testTable = [
+        ["123", 123],
+        ["-456", -456],
+        ["0", 0],
+        ["  789  ", 789],
+
+        [7, 7],
+        [-8, -8],
+        [0, 0],
+        [5.0, 5],
+
+        ["", null],
+        ["  ", null],
+        ["-0", null],
+        ["+0", null],
+        ["1.0", null],
+        ["+1", null],
+        ["404 Not Found", null],
+
+        [3.14, null],
+
+        [null, null],
+        [NaN, null],
+        [undefined, null],
+
+        ["NaN", null],
+
+        [true, null],
+        [false, null],
+        [{}, null],
+        [[], null],
+    ];
+
+    for (const row of testTable) {
+        const res = Utils.stringToIntegerOrNull(row[0]);
+        if (res !== row[1]) {
+            console.error(row[0].toString(), '=>', res, 'Expected:', row[1]);
+        } else {
+            console.log('OK', row[0], '=>', res);
+        }
+    }
+}
+
+
+
+/* =====================================================================
+   Get File Extension
+   ===================================================================== */
+
+Utils.getFileExtension = function (fileName) {
+    if (!fileName) {
+        return null;
+    }
+
+    const parts = fileName.split('.');
+
+    if (parts.length < 2) {
+        return null;
+    }
+
+    return parts.pop().toLowerCase();
+}
+
+
+
+/* =====================================================================
+   Animation
+   ===================================================================== */
+
+Utils.easing = {
+    linear: function (t) { return t },
+    easeInQuad: function (t) { return t * t },
+    easeOutQuad: function (t) { return t * (2 - t) },
+    easeInOutQuad: function (t) { return t < .5 ? 2 * t * t : -1 + (4 - 2 * t) * t },
+    easeInCubic: function (t) { return t * t * t },
+    easeOutCubic: function (t) { return (--t) * t * t + 1 },
+    easeInOutCubic: function (t) { return t < .5 ? 4 * t * t * t : (t - 1) * (2 * t - 2) * (2 * t - 2) + 1 },
+    easeInQuart: function (t) { return t * t * t * t },
+    easeOutQuart: function (t) { return 1 - (--t) * t * t * t },
+    easeInOutQuart: function (t) { return t < .5 ? 8 * t * t * t * t : 1 - 8 * (--t) * t * t * t }
+};
+
+Utils.animate = function (element, properties, opts) {
+
+    var defaults = {
+        duration: 300,
+        delay: 0,
+        easing: 'ease',
+        done: function () { } // noop
+    }
+    var options = Object.assign(defaults, opts);
+
+    var stringToHyphens = function (str) {
+        return str.replace(/([a-z])([A-Z])/g, '$1-$2').toLowerCase();
+    }
+
+    var getAutoHeight = function (element) {
+
+        var originalHeight = element.style.height;
+        element.style.height = 'auto';
+        var autoHeight = element.offsetHeight;
+        element.style.height = originalHeight;
+        element.offsetHeight; // force reflow
+        return autoHeight;
+    }
+
+
+    // Configure the animation (transition)
+    element.style.transitionProperty = Object.keys(properties).map(stringToHyphens).join(',');
+    element.style.transitionDuration = (options.duration / 1000) + 's';
+    element.style.transitionDelay = (options.delay / 1000) + 's';
+    element.style.transitionTimingFunction = options.easing;
+
+
+    // Handle special case height: auto
+    if (properties.height == 'auto') {
+        properties.height = getAutoHeight(element) + 'px';
+    }
+
+
+    // Start the animation
+    window.requestAnimationFrame(function () {
+
+        for (var prop in properties) {
+
+            element.style[prop] = properties[prop];
+        }
+    });
+
+
+    // Callback when done
+    if (typeof options.done == 'function') {
+
+        element.addEventListener('transitionend', function transitionEndHandler(event) {
+
+            if (properties.hasOwnProperty(event.propertyName)) {
+
+                element.removeEventListener('transitionend', transitionEndHandler);
+                options.done();
+            }
+        });
+    }
+};
+
+
+
+/* =====================================================================
+   URL Helpers
+   ===================================================================== */
+
+Utils.urlRelativeToAbsolute = function (path) {
+    const baseUrl = location.origin;
+    const absoluteUrl = new URL(path, baseUrl);
+    return absoluteUrl.href;
+}
+
+Utils.urlAbsoluteToRelative = function (url) {
+    const urlObject = new URL(url);
+    return `${urlObject.pathname}${urlObject.search}${urlObject.hash}`;
+}
+
+Utils.urlGetParam = function (url, key) {
+    var urlObject = new URL(url);
+    return (new URLSearchParams(urlObject.search)).get(key);
+}
+
+Utils.urlHasParam = function (url, key) {
+    var urlObject = new URL(url);
+    return new URLSearchParams(urlObject.search).has(key);
+}
+
+Utils.urlSetParam = function (url, key, value) {
+    var urlObject = new URL(url);
+    var search = new URLSearchParams(urlObject.search);
+
+    if (value === null || value === '') {
+        search.delete(key);
+    } else {
+        search.set(key, value);
+    }
+
+    urlObject.search = search;
+
+    return urlObject.toString();
+}
+
+Utils.urlRemoveParam = function (url, key) {
+    var urlObject = new URL(url);
+    var search = new URLSearchParams(urlObject.search);
+
+    search.delete(key);
+    urlObject.search = search;
+
+    return urlObject.toString();
+}
+
+Utils.urlReplaceLocationAndFormAction = function (url) {
+    history.replaceState(null, '', url);
+    if (window.aspnetForm) {
+        window.aspnetForm.action = url;
+    }
+}
+
+
+
+/* =====================================================================
+   Analytics
+   ===================================================================== */
+
+Utils.reportEvent = function (name, properties, measurements) {
+
+    if (!appInsights || typeof appInsights.trackEvent !== 'function') {
+        return;
+    }
+
+    appInsights.trackEvent({name, properties, measurements});
+};
+
+Utils.reportError = function (error, properties) {
+
+    if (error.reported) {
+        return;
+    } else {
+        error.reported = true;
+    }
+
+    if (!appInsights || typeof appInsights.trackException !== 'function') {
+        return;
+    }
+
+    const severityLevel = 3; // Error Level
+
+    appInsights.trackException({ exception: error, severityLevel, properties });
+};
+
+
+
+/* =====================================================================
+   Notifications
+   ===================================================================== */
+
+Utils.visitNotificationSource = async function (notificationSourceId, timestamp) {
+    const SUCCESS = true;
+    const FAILURE = false;
+
+    if (!notificationSourceId) {
+        console.error('Error: notificationSourceId required');
+        return FAILURE;
+    }
+
+    const visitNotificationSourceUrl = '/Handlers/NotificationHandlers/VisitNotificationSource.ashx';
+
+    let url;
+
+    if (timestamp) {
+        url = `${visitNotificationSourceUrl}?notificationSourceId=${notificationSourceId}&timestamp=${timestamp}`;
+    } else {
+        url = `${visitNotificationSourceUrl}?notificationSourceId=${notificationSourceId}`;
+    }
+
+    try {
+
+        const response = await fetch(url);
+
+        if (response.ok) {
+            const notificationSourceVisitEvent = new CustomEvent(Utils.Event.NOTIFICATION_SOURCE_VISIT, { 'bubbles': true, detail: { notificationSourceId } });
+            document.dispatchEvent(notificationSourceVisitEvent);
+
+            return SUCCESS;
+        } else {
+            return FAILURE;
+        }
+
+    } catch (error) {
+        console.error('Error on fetching', url, error);
+        return FAILURE;
+    }
+}
+
+Utils.newInNotificationSource = async function (notificationSourceId) {
+
+    if (!notificationSourceId) {
+        console.error('Error: notificationSourceId required');
+        return false;
+    }
+
+    const newInNotificationSourceUrl = '/Handlers/NotificationHandlers/NewInNotificationSource.ashx';
+
+    const url = `${newInNotificationSourceUrl}?notificationSourceId=${notificationSourceId}`;
+
+    try {
+        const response = await fetch(url);
+
+        if (!response.ok) {
+            return false;
+        }
+
+        const txt = await response.text();
+
+        if (txt !== 'True') {
+            return false;
+        }
+
+        return true;
+
+    } catch (error) {
+        console.error('Error fetching', url, error);
+        return false;
+    }
+}
+
+Utils.getServerNotificationsUnread = async function () {
+
+    const url = '/Handlers/NotificationHandlers/NumberOfUnreadNotifications.ashx';
+
+    try {
+        const response = await fetch(url);
+
+        if (!response.ok) {
+            return null;
+        }
+
+        const txt = await response.text();
+
+        const numberOfUnreadOrNull = Utils.stringToIntegerOrNull(txt);
+
+        return numberOfUnreadOrNull;
+
+    } catch (error) {
+        console.error('Error fetching', url, error);
+        return null;
+    }
+}
+
+Utils.markNotificationAsRead = async function (notificationId) {
+
+    const url = '/Handlers/NotificationHandlers/MarkNotificationAsRead.ashx?notificationId=' + notificationId;
+
+    try {
+        const response = await fetch(url);
+
+        if (!response.ok) {
+            return null;
+        }
+
+        const notificationsUnreadCountChange = new CustomEvent(Utils.Event.NOTIFICATIONS_UNREAD_COUNT_CHANGE, { 'bubbles': true, detail: { notificationId } });
+        document.dispatchEvent(notificationsUnreadCountChange);
+
+        return true;
+
+    } catch (error) {
+        console.error('Error fetching', url, error);
+        return null;
+    }
+}
+
+Utils.markNotificationAsNew = async function (notificationId) {
+
+    const url = '/Handlers/NotificationHandlers/MarkNotificationAsNew.ashx?notificationId=' + notificationId;
+
+    try {
+        const response = await fetch(url);
+
+        if (!response.ok) {
+            return null;
+        }
+
+        const notificationsUnreadCountChange = new CustomEvent(Utils.Event.NOTIFICATIONS_UNREAD_COUNT_CHANGE, { 'bubbles': true, detail: { notificationId } });
+        document.dispatchEvent(notificationsUnreadCountChange);
+
+        return true;
+
+    } catch (error) {
+        console.error('Error fetching', url, error);
+        return null;
+    }
+}
+
+Utils.markAllNotificationsAsRead = async function (timestamp) {
+
+    const url = '/Handlers/NotificationHandlers/MarkAllNotificationsAsRead.ashx?timestamp=' + timestamp;
+
+    try {
+        const response = await fetch(url);
+
+        if (!response.ok) {
+            return null;
+        }
+
+        const notificationsUnreadCountChange = new CustomEvent(Utils.Event.NOTIFICATIONS_UNREAD_COUNT_CHANGE, { 'bubbles': true });
+        document.dispatchEvent(notificationsUnreadCountChange);
+
+        return true;
+
+    } catch (error) {
+        console.error('Error fetching', url, error);
+        return null;
+    }
+}
+
+
+
+/* =====================================================================
+   Is User Active
+   ===================================================================== */
+
+Utils.IS_USER_ACTIVE_TIMEOUT_SECONDS = 60;
+
+Utils.lastUserInteractionTimestamp = Date.now();
+
+Utils.isUserActive = function () {
+    return (Date.now() - Utils.lastUserInteractionTimestamp) < (Utils.IS_USER_ACTIVE_TIMEOUT_SECONDS * 1000);
+};
+
+Utils.updateUserInteractionTimestamp = function (event) {
+    if (!event.isTrusted) {
+        return;
+    }
+
+    console.debug(`updateUserInteractionTimestamp - ${event.type}`);
+
+    if (!Utils.isUserActive()) {
+        console.log('User active event dispatched.');
+
+        // Update timestamp before dispatching the event
+        Utils.lastUserInteractionTimestamp = Date.now();
+
+        const userActiveEvent = new CustomEvent(Utils.Event.USER_ACTIVE, { 'bubbles': true });
+        document.dispatchEvent(userActiveEvent);
+
+        return;
+    }
+
+    Utils.lastUserInteractionTimestamp = Date.now();
+};
+
+document.addEventListener('scroll', Utils.debounce(Utils.updateUserInteractionTimestamp, 1000), true);
+document.addEventListener('click', Utils.updateUserInteractionTimestamp);
+document.addEventListener('input', Utils.updateUserInteractionTimestamp);
+document.addEventListener('visibilitychange', event => {
+    if (document.visibilityState === 'visible') {
+        Utils.updateUserInteractionTimestamp(event);
+    }
+});
+
+
+
+/* =====================================================================
+   Fetch Helper
+   ===================================================================== */
+
+Utils.reloadIfRedirect = function (response) {
+    if (response.redirected) {
+        location.reload();
+    }
+}

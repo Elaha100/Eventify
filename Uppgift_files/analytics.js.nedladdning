@@ -1,0 +1,73 @@
+'use strict';
+
+(function () {
+
+    //  -----------------------------------------------------------------------
+
+    window.addEventListener('load', function () {
+        window.setTimeout(reportNavigationPerformance, 400);
+    });
+
+    //  -----------------------------------------------------------------------
+
+    function reportNavigationPerformance() {
+
+
+        var measurements = getNavigationPerformance();
+
+        if (!measurements) {
+            return;
+        }
+
+        var eventName = 'Navigation Performance';
+
+        var props = {
+            url: location.href,
+            hostname: location.hostname,
+            pathname: location.pathname,
+            userAgent: navigator.userAgent
+        };
+        
+        Utils.reportEvent(eventName, props, measurements);
+    }
+
+    //  -----------------------------------------------------------------------
+
+    function getNavigationPerformance() {
+
+        // More information at:
+        // https://developers.google.com/web/fundamentals/performance/navigation-and-resource-timing/
+        // https://css-tricks.com/breaking-performance-api/
+
+        if (!window.performance || typeof performance.getEntriesByType !== 'function') {
+            return null;
+        }
+
+        var navPerformanceArray = performance.getEntriesByType('navigation');
+        if (!navPerformanceArray || navPerformanceArray.length < 1) {
+            return null;
+        }
+
+        var navPerformanceEntry = navPerformanceArray[0];
+        
+        var navigationPerformance = {
+            requestStart: Math.floor(navPerformanceEntry.requestStart),
+            responseStart: Math.floor(navPerformanceEntry.responseStart),
+            responseEnd: Math.floor(navPerformanceEntry.responseEnd),
+            domContentLoadedEventStart: Math.floor(navPerformanceEntry.domContentLoadedEventStart),
+            loadEventEnd: Math.floor(navPerformanceEntry.loadEventEnd),
+            transferSize: Math.floor(navPerformanceEntry.transferSize),
+            encodedBodySize: Math.floor(navPerformanceEntry.encodedBodySize),
+            decodedBodySize: Math.floor(navPerformanceEntry.decodedBodySize)
+        };
+
+        for (var pr in navigationPerformance) {
+            if (typeof navigationPerformance[pr] !== 'number') {
+                return null;
+            }
+        }
+        
+        return navigationPerformance;
+    }
+
+})();

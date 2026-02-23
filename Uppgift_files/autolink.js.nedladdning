@@ -1,0 +1,126 @@
+﻿'use strict';
+
+/* =====================================================================
+
+	Once an element is autolinked, it will be marked as done, and never
+    autolinked again. Even if its content changes!
+
+    Therefore, avoid having update panels INSIDE an element that should
+    be autolinked.
+
+	===================================================================== */
+
+(function () {
+
+    var cmp = LearnPoint.createComponent('autolink');
+
+    // ------------------------------------------------------------------------
+
+    var Selector = {
+        AUTOLINK: '[data-autolink]:not([data-autolink=done])',
+        EXTERNALIZE_LINK_CANDIDATE: 'a[href^=http]'
+    }
+
+    // ------------------------------------------------------------------------
+
+    document.addEventListener('DOMContentLoaded', function () {
+        window.addEventListener('load', autolink);
+        Sys.WebForms.PageRequestManager.getInstance().add_endRequest(autolink);
+    });
+
+    // ------------------------------------------------------------------------
+
+    function autolink() {
+
+        var autolinkElementInDom = document.querySelector(Selector.AUTOLINK);
+        if (!autolinkElementInDom) {
+            // If autolinkElementInDom, then externalizeLinks()
+            // will be called later by runAutolink.
+            externalizeLinks();
+            return;
+        }
+
+        if (window.linkifyElement && typeof window.linkifyElement === 'function') {
+
+            runAutolink();
+
+        } else {
+
+            Utils.requireScript('/Scripts/Lib/linkify.js', Utils.noop);
+            Utils.requireScript('/Scripts/Lib/linkify-element.js', runAutolink);
+        }
+    }
+
+    // ------------------------------------------------------------------------
+
+    function runAutolink() {
+
+        var elements = document.querySelectorAll(Selector.AUTOLINK);
+        for (var i = 0; i < elements.length; i++) {
+            autolinkElement(elements[i]);
+        }
+
+        externalizeLinks();
+    }
+
+    // ------------------------------------------------------------------------
+
+    function autolinkElement(element) {
+        function getTarget(href, type) {
+            if (type === 'url' && isExternal(href)) {
+                return '_blank';
+            }
+            if (type === 'url' && !isExternal(href)) {
+                return '_self';
+            }
+            return null;
+        }
+
+        linkifyElement(element, { target: getTarget, attributes: { rel: 'noopener noreferrer' }, defaultProtocol: 'https' }, document);
+        element.setAttribute('data-autolink', 'done');
+    }
+
+    // ------------------------------------------------------------------------
+
+    function externalizeLinks() {
+
+        var links = document.querySelectorAll(Selector.EXTERNALIZE_LINK_CANDIDATE);
+
+        for (var i = 0; i < links.length; i++) {
+            externalizeLink(links[i]);
+        }
+    }
+
+    // ------------------------------------------------------------------------
+
+    function externalizeLink(link) {
+
+        if (link.hasAttribute('target')) {
+            return;
+        }
+
+        if (isExternal(link.href)) {
+            link.setAttribute('target', '_blank');
+            link.setAttribute('rel', 'noopener noreferrer');
+        }
+    }
+
+    // ------------------------------------------------------------------------
+
+    function isExternal(href) {
+        var urlObj = null;
+
+        try {
+            urlObj = new URL(href);
+        } catch (ex) {
+            return false; // Bad href format, or URL not supported by browser
+        }
+
+        if (urlObj.host !== window.location.host) {
+            return true;
+        }
+
+        return false;
+    }
+
+})();

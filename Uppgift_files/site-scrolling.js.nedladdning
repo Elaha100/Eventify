@@ -1,0 +1,553 @@
+﻿'use strict';
+
+(function () {
+
+
+    var cmp = LearnPoint.createComponent('site-scrolling');
+
+
+
+    /* =====================================================================
+       Disable Store Position On Submit Once
+       ===================================================================== */
+
+    var _disableStorePositionOnSubmitOnce = false;
+
+
+
+    /* =====================================================================
+       Class Names
+       ===================================================================== */
+
+    var ClassName = {
+        DISABLED: 'scroll-disabled',
+        SCROLL_AFTER_POSTBACK: 'site-scrolling--scroll-after-postback'
+    }
+
+    cmp['ClassName'] = ClassName;
+
+
+
+    /* =====================================================================
+       Selectors
+       ===================================================================== */
+
+    var Selector = {
+        FOR_DESKTOP: '[data-site-scrolling=for-desktop]',
+        SCROLLING_STATE_STORE: '[data-site-scrolling-state-store=true]',
+        SCROLL_TO: '[data-site-scrolling-scroll-to=true]',
+        SCROLL_SMOOTH_TO: '[data-site-scrolling-scroll-smooth-to=true]',
+        SITE: '[data-site=true]',
+        SITE_CONTENT: '[data-site-content=true]',
+        FILLER: '[data-site-scrolling=filler]'
+    }
+
+    cmp['Selector'] = Selector;
+
+
+
+    /* =====================================================================
+       Attribute
+       ===================================================================== */
+
+    var Attribute = {
+        OFFSET: 'data-site-scrolling-scroll-to-offset',
+        DURATION: 'data-site-scrolling-scroll-smooth-to-duration',
+        DELAY: 'data-site-scrolling-scroll-smooth-to-delay'
+    }
+
+    cmp['Attribute'] = Attribute;
+
+
+
+    /* =====================================================================
+       Param
+       ===================================================================== */
+
+    var Param = {
+        SCROLL: 'SiteScrolling.Scroll'
+    }
+
+
+
+    /* =====================================================================
+       Events
+       ===================================================================== */
+
+    var Event = {
+        SCROLLED_TO_ELEMENT: 'siteScrolling_ScrolledToElement'
+    }
+
+    cmp['Event'] = Event;
+
+
+
+    /* =====================================================================
+       Scrolling for desktop
+       ===================================================================== */
+
+    var scrollingForDesktop = null;
+
+
+
+    /* =====================================================================
+       Scroll to element when document is ready
+       ===================================================================== */
+
+    document.addEventListener('DOMContentLoaded', function (event) {
+
+        scrollingForDesktop = document.querySelector(Selector.FOR_DESKTOP);
+
+
+        var scrollTo_Element = document.querySelector(Selector.SCROLL_TO);
+        if (scrollTo_Element) {
+            var offset = scrollTo_Element.getAttribute(Attribute.OFFSET) ? scrollTo_Element.getAttribute(Attribute.OFFSET) : 0;
+            ScrollToElement(scrollTo_Element, parseInt(offset, 10));
+            return;
+        }
+
+
+        var scrollSmoothTo_Element = document.querySelector(Selector.SCROLL_SMOOTH_TO);
+        if (scrollSmoothTo_Element) {
+
+            var offset = scrollSmoothTo_Element.getAttribute(Attribute.OFFSET) ? scrollSmoothTo_Element.getAttribute(Attribute.OFFSET) : 0;
+            var duration = scrollSmoothTo_Element.getAttribute(Attribute.DURATION) ? scrollSmoothTo_Element.getAttribute(Attribute.DURATION) : 160;
+            var delay = scrollSmoothTo_Element.getAttribute(Attribute.DELAY) ? scrollSmoothTo_Element.getAttribute(Attribute.DELAY) : 160;
+
+            console.log('Scroll smooth to element duration: ' + duration);
+            console.log('Scroll smooth to element delay: ' + delay);
+
+            window.setTimeout(function () {
+                ScrollSmoothToElement(scrollSmoothTo_Element, parseInt(offset, 10), parseInt(duration, 10));
+            }, delay);
+
+        }
+
+    }, false);
+
+
+
+    /* =====================================================================
+       Scroll To Element
+       ===================================================================== */
+
+    function ScrollToElement(element, paddingTop) {
+
+        console.log('Will Scroll To Element: ' + element);
+
+        var top = element.offsetTop;
+
+        if (paddingTop) {
+            top = top - paddingTop;
+        }
+
+        SetScrollPosition(top);
+    }
+
+    cmp['ScrollToElement'] = ScrollToElement;
+
+
+
+    /* =====================================================================
+       Scroll Smooth To Element
+       ===================================================================== */
+
+    function ScrollSmoothToElement(element, paddingTop, duration) {
+
+        var top = element.offsetTop;
+
+        if (paddingTop) {
+            top = top - paddingTop;
+        }
+
+        var numberOfPixels = top - GetScrollPosition();
+
+        ScrollSmooth(numberOfPixels, duration, Utils.easing.easeInOutCubic, function () {
+
+            // Dispach scrolled to event
+            var scrolledToElement_Event = new CustomEvent(Event.SCROLLED_TO_ELEMENT, { 'bubbles': true });
+            element.dispatchEvent(scrolledToElement_Event);
+
+        });
+    }
+
+    cmp['ScrollSmoothToElement'] = ScrollSmoothToElement;
+
+
+
+    /* =====================================================================
+       Scroll
+       ===================================================================== */
+
+    function Scroll(numberOfPixels) {
+
+        SetScrollPosition(GetScrollPosition() + numberOfPixels);
+    }
+
+    cmp['Scroll'] = Scroll;
+
+
+
+    /* =====================================================================
+       Scroll Smooth
+       ===================================================================== */
+
+    function ScrollSmooth(numberOfPixels, duration, easing, callback) {
+
+        EnsureScrollSpace(numberOfPixels);
+
+        var ease = easing || Utils.easing.linear;
+
+        var done = false;
+
+        var aborted = false;
+
+        var startTime = null;
+        var endTime = null;
+
+        var startPosition = GetScrollPosition();
+        var endPosition = startPosition + numberOfPixels;
+
+        var done_message = 'Scrolled page ' + numberOfPixels + 'px';
+
+        document.addEventListener('mousewheel', abortOnScroll, { passive: true });
+        document.addEventListener("DOMMouseScroll", abortOnScroll, { passive: true });
+
+        function abortOnScroll() {
+            aborted = true;
+            document.removeEventListener('mousewheel', abortOnScroll, { passive: true });
+            document.removeEventListener('DOMMouseScroll', abortOnScroll, { passive: true });
+            console.log('Aborted ScrollSmooth because scroll event occurred');
+        }
+
+        var step = function (currentTime) {
+
+            // init time
+            if (!startTime) {
+                startTime = currentTime;
+                endTime = startTime + duration;
+            }
+
+            var progress = (currentTime - startTime) / (endTime - startTime);
+
+            var newPosition = Math.floor(startPosition + ease(progress) * numberOfPixels);
+
+            // If progress exceeds 1,
+            // or if newPosition is "more" than endPosition,
+            // then we consider the animation done
+            if (progress >= 1) {
+
+                newPosition = endPosition;
+                done = true;
+
+            } else if (numberOfPixels > 0 && newPosition >= endPosition) {
+
+                newPosition = endPosition;
+                done = true;
+
+            } else if (numberOfPixels < 0 && newPosition <= endPosition) {
+
+                newPosition = endPosition;
+                done = true;
+            }
+
+            if (!aborted) {
+                SetScrollPosition(newPosition, true);
+            }
+
+            if (!done && !aborted) {
+
+                window.requestAnimationFrame(step);
+
+            } else {
+
+                document.removeEventListener('mousewheel', abortOnScroll, { passive: true });
+                document.removeEventListener('DOMMouseScroll', abortOnScroll, { passive: true });
+
+                if (!aborted) {
+                    console.log(done_message);
+                }
+
+                if (callback && typeof callback == 'function') {
+                    callback.call();
+                }
+            }
+        }
+
+        window.requestAnimationFrame(step);
+    }
+
+    cmp['ScrollSmooth'] = ScrollSmooth;
+
+
+
+    /* =====================================================================
+       Disable page scrolling counter
+       ===================================================================== */
+
+    var disableScrollCounter = 0;
+
+
+
+    /* =====================================================================
+       Disable site scrolling 
+       ===================================================================== */
+
+    function Disable() {
+
+        if (!IsDisabled()) {
+
+            StorePosition();
+
+            var top = '-' + GetScrollStoreValue() + 'px';
+
+            document.documentElement.classList.add(ClassName.DISABLED);
+
+            document.body.style.top = top;
+        }
+
+        disableScrollCounter++;
+    }
+
+    cmp['Disable'] = Disable;
+
+
+
+    /* =====================================================================
+       Enable site scrolling 
+       ===================================================================== */
+
+    function Enable() {
+
+        if (disableScrollCounter > 0) {
+            disableScrollCounter--;
+        } else {
+            disableScrollCounter = 0;
+        }
+
+        if (disableScrollCounter != 0) {
+            return;
+        } 
+
+        document.documentElement.classList.remove(ClassName.DISABLED);
+        SetScrollPosition(GetScrollStoreValue());
+
+        document.body.style.top = '';
+    }
+
+    cmp['Enable'] = Enable;
+
+
+
+    /* =====================================================================
+      Check for scroll disabled state
+      ===================================================================== */
+
+    function IsDisabled() {
+
+        if (document.body.classList.contains('rwPreventPageScrolling') || document.documentElement.classList.contains(ClassName.DISABLED)) {
+            return true;
+        } else {
+            return false;
+        }
+    }
+
+    cmp['IsDisabled'] = IsDisabled;
+
+
+
+
+    /* =====================================================================
+        Set the scroll store value 
+        ===================================================================== */
+
+    function SetScrollStoreValue(storeValue) {
+
+        document.querySelector(Selector.SCROLLING_STATE_STORE).value = Math.floor(storeValue);
+    }
+
+    cmp['SetScrollStoreValue'] = SetScrollStoreValue;
+
+
+
+    /* =====================================================================
+      Get the scroll store value 
+      ===================================================================== */
+
+    function GetScrollStoreValue() {
+
+        var ssv = document.querySelector(Selector.SCROLLING_STATE_STORE).value || 0;
+        return parseInt(ssv, 10);
+    }
+
+    cmp['GetScrollStoreValue'] = GetScrollStoreValue;
+
+
+
+    /* =====================================================================
+       Scroll Smooth To Bottom
+       ===================================================================== */
+
+    function ScrollSmoothToBottom(duration, easing) {
+
+        var numberOfPixels = GetMaxScroll() - GetScrollPosition();
+        if (numberOfPixels > 0) {
+            ScrollSmooth(numberOfPixels, duration, easing);
+        }
+    }
+
+    cmp['ScrollSmoothToBottom'] = ScrollSmoothToBottom;
+
+
+
+    /* =====================================================================
+       Get max scroll
+       ===================================================================== */
+
+    function GetMaxScroll() {
+
+        return Math.floor(document.documentElement.scrollHeight - document.documentElement.clientHeight);
+    }
+
+
+
+    /* =====================================================================
+       Get scroll position 
+       ===================================================================== */
+
+    function GetScrollPosition() {
+
+        return Math.floor(window.scrollY);
+    }
+
+    cmp['GetScrollPosition'] = GetScrollPosition;
+
+
+
+    /* =====================================================================
+       Set scroll position 
+       ===================================================================== */
+
+    function SetScrollPosition(position, mute_log) {
+
+        window.scrollTo(0, Math.floor(position)); // Math.floor will convert to integer
+
+        if (!mute_log) {
+            console.log('Scrolled page to ' + position + 'px');
+        }
+    }
+
+    cmp['SetScrollPosition'] = SetScrollPosition;
+
+
+
+    /* =====================================================================
+       Store scroll position 
+       ===================================================================== */
+
+    function StorePosition() {
+
+        if (IsDisabled()) {
+            return;
+        }
+
+        SetScrollStoreValue(GetScrollPosition());
+    }
+
+    cmp['StorePosition'] = StorePosition;
+
+
+
+    /* =====================================================================
+       Store scroll position on submit
+       ===================================================================== */
+
+    function StorePositionOnSubmit() {
+
+        if (_disableStorePositionOnSubmitOnce) {
+            _disableStorePositionOnSubmitOnce = false;
+            return;
+        }
+
+        StorePosition();
+    }
+
+    cmp['StorePositionOnSubmit'] = StorePositionOnSubmit;
+
+
+
+    /* =====================================================================
+       Disable Store Position On Submit Once
+       ===================================================================== */
+
+    function DisableStorePositionOnSubmitOnce() {
+
+        _disableStorePositionOnSubmitOnce = true;
+    }
+
+    cmp['DisableStorePositionOnSubmitOnce'] = DisableStorePositionOnSubmitOnce;
+
+
+
+    /* =====================================================================
+       Restore scroll position 
+       ===================================================================== */
+
+    function RestorePosition(callback) {
+
+        var scrollStoreValue = GetScrollStoreValue();
+
+        if (scrollStoreValue > 0) {
+            SetScrollPosition(scrollStoreValue, true);
+            console.log('Restored scroll position to ' + scrollStoreValue + 'px');
+        }
+
+        var siteElement = document.querySelector(Selector.SITE);
+
+        if (siteElement.classList.contains(ClassName.SCROLL_AFTER_POSTBACK)) {
+
+            siteElement.addEventListener('transitionend', function siteElementTransitionEnd(e) {
+
+                siteElement.removeEventListener('transitionend', siteElementTransitionEnd);
+                if (typeof callback === 'function') callback();
+            });
+
+            siteElement.classList.remove(ClassName.SCROLL_AFTER_POSTBACK);
+
+        } else {
+
+            if (typeof callback === 'function') callback();
+        }
+
+        var newUrl = Utils.urlRemoveParam(location, Param.SCROLL);
+        Utils.urlReplaceLocationAndFormAction(newUrl);
+    }
+
+    cmp['RestorePosition'] = RestorePosition;
+
+
+
+    /* =====================================================================
+       Ensure Scroll Space
+       ===================================================================== */
+
+    function EnsureScrollSpace(numberOfPixels) {
+
+        var extraHeightNeededForScrolling = (document.documentElement.clientHeight + GetScrollPosition() + numberOfPixels) - document.body.offsetHeight;
+        var filler_Element;
+        var filler_Height = 0;
+
+        if (extraHeightNeededForScrolling > 0) {
+
+            filler_Element = document.querySelector(Selector.FILLER);
+            if (filler_Element) {
+                filler_Height = filler_Element.clientHeight + extraHeightNeededForScrolling;
+                filler_Element.style.height = filler_Height + 'px';
+            }
+
+            console.log('Added ' + extraHeightNeededForScrolling + 'px to ensure scroll space');
+        }
+    }
+
+
+})();

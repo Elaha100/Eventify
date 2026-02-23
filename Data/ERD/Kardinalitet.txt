@@ -1,0 +1,7 @@
+Kardinalitet (enligt ER-diagrammet)
+
+Customers 1 → many Orders
+Orders 1 → many Tickets
+Events 1 → many Tickets
+Venues 1 → many Events
+Events many ↔ many Tags

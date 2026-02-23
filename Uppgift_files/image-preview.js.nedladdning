@@ -1,0 +1,226 @@
+﻿'use strict';
+
+(function () {
+
+    /*
+     * Selectors include general selectors, but also selectors
+     * that are specific for rtf-formatted-content (output from Trix)
+     */
+
+    const cmp = LearnPoint.createComponent('image-preview');
+
+    const Selector = {
+        PREVIEWABLE_IMAGE: `.rtf-formatted-content .attachment, ${cmp.elementSelector('previewable-image')}`,
+        PREVENT_PREVIEW_CONTAINER: 'trix-editor', // Prevent preview when inside trix editor
+        IMAGE_CAPTION_STORE: `.attachment__caption, ${cmp.elementSelector('image-caption')}`,
+        OVERLAY: cmp.elementSelector('overlay'),
+        PREVIEW_IMAGE: cmp.elementSelector('preview-image')
+    }
+
+    const DataElementAttribute = {
+        OVERLAY: 'image-preview.overlay',
+        PREVIEW_IMAGE: 'image-preview.preview-image'
+    }
+
+    const Param = {
+        DISPOSITION: 'Disposition'
+    }
+
+    const ParamValue = {
+        ATTACHMENT: 'Attachment'
+    }
+
+
+
+    /* =====================================================================
+       Open Preview On Click
+       ===================================================================== */
+
+    document.addEventListener('click', event => {
+
+        const previewableImage = event.target.closest(Selector.PREVIEWABLE_IMAGE);
+        if (!previewableImage) {
+            return;
+        }
+
+        const preventPreviewContainer = event.target.closest(Selector.PREVENT_PREVIEW_CONTAINER);
+        if (preventPreviewContainer) {
+            return;
+        }
+
+        // If there's an image, it might be wrapped in a link
+        if (previewableImage.querySelector('img') || event.target.matches('img')) {
+            event.preventDefault();
+        }
+
+        const imageElement = event.target;
+        if (!imageElement.matches('img')) {
+            return;
+        }
+
+        let imageCaption = null;
+
+        const imageCaptionStore = previewableImage.querySelector(Selector.IMAGE_CAPTION_STORE);
+        if (imageCaptionStore) {
+            imageCaption = imageCaptionStore.innerText;
+        }
+
+        if (!imageCaption && imageElement.title) {
+            imageCaption = imageElement.title;
+        }
+
+        if (!imageCaption) {
+            imageCaption = 'Bild';
+        }
+
+        openPreview(imageElement, imageCaption);
+    });
+
+
+
+    /* =====================================================================
+       Close Preview On Click
+       ===================================================================== */
+
+    document.addEventListener('click', event => {
+        if (!event.target.matches(Selector.OVERLAY) && !event.target.matches(Selector.PREVIEW_IMAGE)) {
+            return;
+        }
+
+        const overlay = event.target.closest(Selector.OVERLAY);
+        if (!overlay) {
+            return;
+        }
+
+        closePreview(overlay);
+    });
+
+
+
+    /* =====================================================================
+       Close Preview On Esc Key
+       ===================================================================== */
+
+    document.addEventListener('keyup', event => {
+        if (event.key !== 'Escape' && event.key !== 'Esc') {
+            return;
+        }
+
+        const overlay = document.querySelector(Selector.OVERLAY);
+        if (!overlay) {
+            return;
+        }
+
+        closePreview(overlay);
+    });
+
+
+
+    /* =====================================================================
+       Open Preview
+       ===================================================================== */
+
+    function openPreview(imageSource, imageCaption) {
+        const overlay = createPreviewOverlay(imageSource, imageCaption);
+
+        LearnPoint.SiteScrolling.Disable();
+
+        document.body.append(overlay);
+
+        setTimeout(() => {
+            const img = overlay.querySelector('img');
+            const link = overlay.querySelector('a');
+
+            // Use background color transition to avoid opacity bleeding into image
+            overlay.style.backgroundColor = "rgba(0, 0, 0, .9)";
+
+            img.style.opacity = "1";
+            link.style.opacity = "1";
+        }, 10);
+    }
+
+
+
+    /* =====================================================================
+       Crate Preview Overlay
+       ===================================================================== */
+
+    function createPreviewOverlay(imageSource, imageCaption) {
+
+        // Overlay Element
+        const overlay = document.createElement('div');
+
+        overlay.setAttribute('data-element', DataElementAttribute.OVERLAY);
+        overlay.style.cssText = `position:fixed;
+                                 z-index: 100;
+                                 top: 0;
+                                 right: 0;
+                                 bottom: 0;
+                                 left: 0;
+                                 display: flex;
+                                 flex-direction: column;
+                                 justify-content: center;
+                                 align-items: center;
+                                 cursor: pointer;
+                                 transition: background-color .32s;
+                                 background-color: rgba(0, 0, 0, 0);`;
+
+
+        // Image Preview Element
+        const imgPreview = document.createElement('img');
+
+        imgPreview.setAttribute('data-element', DataElementAttribute.PREVIEW_IMAGE);
+        imgPreview.src = imageSource.src;
+        imgPreview.style.cssText = `display: block;
+                                    cursor: pointer;
+                                    opacity: 0;
+                                    transition: opacity .24s .16s;
+                                    max-width: 94vw;
+                                    max-height: 94vh;`;
+        overlay.append(imgPreview);
+
+
+        // Download Link Element
+        const downloadLink = document.createElement('a');
+
+        downloadLink.href = Utils.urlSetParam(imageSource.src, Param.DISPOSITION, ParamValue.ATTACHMENT);
+        downloadLink.setAttribute('download', imageCaption);
+        downloadLink.textContent = imageCaption;
+        downloadLink.setAttribute('title', 'Spara');
+        downloadLink.style.cssText = `color: #fff;
+                                      font-size: 15px;
+                                      font-weight: 600;
+                                      padding: 4px;
+                                      opacity: 0;
+                                      transition: opacity .08s .16s`;
+        overlay.append(downloadLink);
+
+        return overlay;
+    }
+
+
+
+    /* =====================================================================
+       Close Preview
+       ===================================================================== */
+
+    function closePreview(overlay) {
+        const img = overlay.querySelector('img');
+        const link = overlay.querySelector('a');
+
+        img.style.transition = "opacity .12s";
+        img.style.opacity = "0";
+
+        link.style.transition = "opacity .12s";
+        link.style.opacity = "0";
+
+        overlay.style.backgroundColor = "rgba(0, 0, 0, 0)";
+
+        LearnPoint.SiteScrolling.Enable();
+
+        setTimeout(() => {
+            overlay.remove();
+        }, 400);
+    }
+
+})();

@@ -1,0 +1,317 @@
+'use strict';
+
+/* =====================================================================
+   
+   Persistent expandables does not collapse on Esc key click or mouse
+   click outside the expandable. An intentional click on a toggle button
+   or collapse button is required to collapse a persistent expandable.
+
+   ===================================================================== */
+
+(function () {
+
+    var cmp = LearnPoint.createComponent('expandable');
+
+    var ClassName = {
+        EXPANDED: 'EXPANDED',
+        EXPANDED_ON_LOAD: 'EXPANDED_ON_LOAD'
+    }
+    cmp['ClassName'] = ClassName;
+
+    var Selector = {
+        EXPANDABLE: cmp.componentSelector(),
+        EXPAND_BUTTON: cmp.elementSelector('expand-button'),
+        COLLAPSE_BUTTON: cmp.elementSelector('collapse-button'),
+        TOGGLE_BUTTON: cmp.elementSelector('toggle-button'),
+        STATE_STORE: cmp.elementSelector('state-store'),
+        EXPANDED: cmp.componentSelector() + '.' + ClassName.EXPANDED,
+        EXPANDED_ON_LOAD: cmp.componentSelector() + '.' + ClassName.EXPANDED_ON_LOAD
+    }
+
+    var Property = {
+        ID: 'id',
+        FOR: 'for',
+        PERSISTENT: 'persistent'
+    }
+
+    var Event = {
+        EXPANDED: 'expandable_expanded',
+        COLLAPSED: 'expandable_collapsed'
+    }
+    cmp['Event'] = Event;
+
+
+
+    /* =====================================================================
+       Click Handler
+       ===================================================================== */
+
+    document.addEventListener('click', function (event) {
+
+        // A. Collapse Button
+        const collapseButton = event.target.closest(Selector.COLLAPSE_BUTTON);
+        if (collapseButton) {
+            const expandableForCollapseButton = findAssociatedExpandable(collapseButton);
+            if (expandableForCollapseButton) {
+                collapse(expandableForCollapseButton);
+            }
+            collapseAll();
+            return;
+        }
+
+        // B. Expand Button
+        const expandButton = event.target.closest(Selector.EXPAND_BUTTON);
+        if (expandButton) {
+            const expandableForExpandButton = findAssociatedExpandable(expandButton);
+            if (!expandableForExpandButton) {
+                collapseAll();
+                return;
+            }
+            expand(expandableForExpandButton);
+            collapseAll(expandableForExpandButton);
+            return;
+        }
+
+        // C. Toggle Button
+        const toggleButton = event.target.closest(Selector.TOGGLE_BUTTON);
+        if (toggleButton) {
+            const expandableForToggleButton = findAssociatedExpandable(toggleButton);
+            if (!expandableForToggleButton) {
+                collapseAll();
+                return;
+            }
+            toggle(expandableForToggleButton);
+            collapseAll(expandableForToggleButton);
+            return;
+        }
+
+        // D. Inside Expandable
+        const expandable = event.target.closest(Selector.EXPANDABLE);
+        if (expandable) {
+            if (event.isTrusted) { // do not collapse if javascript click
+                collapseAll(expandable);
+            }
+            return;
+        }
+
+        // E. Outside Expandable
+        if (event.isTrusted) { // do not collapse if javascript click
+            collapseAll();
+        }
+
+    });
+
+
+
+    /* =====================================================================
+       Keydown Handler
+       ===================================================================== */
+
+    document.addEventListener('keydown', function (event) {
+        if (event.key === 'Escape' || event.key === 'Esc') {
+            collapseAll();
+        }
+    });
+
+
+
+    /* =====================================================================
+       Load Handler
+       ===================================================================== */
+
+    document.addEventListener("DOMContentLoaded", InitStateStoreManagement);
+
+
+
+    /* =====================================================================
+       Init State Store Management
+       ===================================================================== */
+
+    function InitStateStoreManagement() {
+
+        var stateStores = document.querySelectorAll(Selector.STATE_STORE);
+
+        if (stateStores.length > 0) {
+
+            ApplyStateStoreValues(document, stateStores);
+
+            // Apply StateStoreValues for each UpdatePanel request
+            Sys.WebForms.PageRequestManager.getInstance().add_endRequest(UpdatePanels_Done);
+        }
+
+        function UpdatePanels_Done(sender, args) {
+            const updatePanels = LearnPoint.Main.getUpdatePanels();
+
+            for (const updatePanel of updatePanels) {
+                ApplyStateStoreValues(updatePanel);
+            }
+        }
+    }
+
+
+
+    /* =====================================================================
+       Apply State Store Values
+       ===================================================================== */
+
+    function ApplyStateStoreValues(scope, stateStores) {
+
+        scope = scope || document;
+        stateStores = stateStores || scope.querySelectorAll(Selector.STATE_STORE);
+
+        for (var i = 0; i < stateStores.length; i++) {
+
+            if (stateStores[i].checked) {
+
+                var expandable = stateStores[i].closest(Selector.EXPANDABLE);
+                if (expandable) {
+                    expandOnLoad(expandable);
+                }
+            }
+        }
+
+        window.setTimeout(function () {
+            var expandedOnLoad = scope.querySelectorAll(Selector.EXPANDED_ON_LOAD);
+            for (var i = 0; i < expandedOnLoad.length; i++) {
+                expandedOnLoad[i].classList.remove(ClassName.EXPANDED_ON_LOAD);
+            }
+        }, 1000);
+    }
+
+
+
+    /* =====================================================================
+       Expand On Load
+       ===================================================================== */
+
+    function expandOnLoad(expandable) {
+        expand(expandable);
+        expandable.classList.add(ClassName.EXPANDED_ON_LOAD);
+    }
+
+
+
+    /* =====================================================================
+       Find Associated Expandable
+       ===================================================================== */
+
+    function findAssociatedExpandable(button) {
+        const expandableId = cmp.getProperty(button, Property.FOR);
+        if (expandableId) {
+            const forIdSelector = cmp.propertyStoreWithValueSelector(Property.ID, expandableId);
+            return document.querySelector(forIdSelector);
+        } else {
+            // Avoid ancenstors that have an id property
+            const ancestorSelector = `${Selector.EXPANDABLE}:not(${cmp.propertyStoreSelector(Property.ID)})`;
+            return button.closest(ancestorSelector);
+        }
+    }
+
+
+    /* =====================================================================
+       Expand
+       ===================================================================== */
+
+    function expand(expandable) {
+
+        // Exit if already expanded
+        if (expandable.matches(Selector.EXPANDED)) {
+            return;
+        }
+
+        expandable.classList.add(ClassName.EXPANDED);
+
+        var autofocus = expandable.querySelector('[autofocus]');
+        if (autofocus) {
+            autofocus.focus();
+        }
+
+        var statestore = expandable.querySelector(Selector.STATE_STORE);
+        if (statestore) {
+            statestore.checked = true;
+            statestore.setAttribute('checked', 'checked');
+        }
+
+        var expandedEvent = new CustomEvent(Event.EXPANDED, { 'bubbles': true });
+        expandable.dispatchEvent(expandedEvent);
+    }
+
+
+    /* =====================================================================
+       Collapse
+       ===================================================================== */
+
+    function collapse(expandable) {
+
+        // Exit if already collapsed
+        if (!expandable.matches(Selector.EXPANDED)) {
+            return;
+        }
+
+        expandable.classList.remove(ClassName.EXPANDED);
+
+        var statestore = expandable.querySelector(Selector.STATE_STORE);
+        if (statestore) {
+            statestore.checked = false;
+            statestore.removeAttribute('checked');
+        }
+
+        var collapseEvent = new CustomEvent(Event.COLLAPSED, { 'bubbles': true });
+        expandable.dispatchEvent(collapseEvent);
+    }
+
+
+
+    /* =====================================================================
+       Toggle
+       ===================================================================== */
+
+    function toggle(expandable) {
+        if (expandable.matches(Selector.EXPANDED)) {
+            collapse(expandable);
+        } else {
+            expand(expandable);
+        }
+    }
+
+
+
+    /* =====================================================================
+       Collapse All
+       ===================================================================== */
+
+    function collapseAll(ignore) {
+
+        // We're only interested in those that are expanded
+        const expandedExpandables = document.querySelectorAll(Selector.EXPANDED);
+
+        expandedExpandables.forEach(expandable => {
+            if (isPersistent(expandable)) {
+                return;
+            }
+            if (expandable === ignore) {
+                return;
+            }
+            // Don't collapse ancestor of ignore
+            if (expandable.contains(ignore)) {
+                return;
+            }
+            collapse(expandable);
+        });
+    }
+
+
+
+    /* =====================================================================
+        Is Persistent
+        ===================================================================== */
+
+    function isPersistent(expandable) {
+        var prop = cmp.getProperty(expandable, Property.PERSISTENT);
+        if (prop && prop === 'true') {
+            return true;
+        }
+        return false;
+    }
+
+})();

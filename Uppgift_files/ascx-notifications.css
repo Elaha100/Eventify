@@ -1,0 +1,460 @@
+/* ==========================================================================
+   Notifications
+   ========================================================================== */
+
+.ascx-notifications {
+}
+
+
+
+/* ==========================================================================
+   Read
+   ========================================================================== */
+
+.ascx-notifications__read {
+    border-top: 1px solid rgba(0,0,0,0.15);
+}
+
+
+
+/* ==========================================================================
+   Container
+   ========================================================================== */
+
+.ascx-notifications__container {
+    padding: 42px 32px;
+    max-width: 768px;
+    margin: 0 auto;
+}
+
+.is-mobile .ascx-notifications__container {
+    padding: 24px 0;
+}
+
+
+
+/* ==========================================================================
+   Header
+   ========================================================================== */
+
+.ascx-notifications__header {
+    display: flex;
+    align-items: baseline;
+    box-sizing: border-box;
+    margin-bottom: .3em;
+}
+
+.is-mobile .ascx-notifications__header {
+    padding: 0 16px; /* container has no horizontal padding on mobile */
+}
+
+
+
+/* ==========================================================================
+   Title
+   ========================================================================== */
+
+.ascx-notifications__title {
+    font-weight: bold;
+    font-size: 1.5em;
+    flex: 1;
+}
+
+.ascx-notifications__new:not(.EMPTY) .ascx-notifications__title {
+    color: #f44717;
+}
+
+.is-mobile .ascx-notifications__title {
+    font-size: 1.1em;
+}
+
+
+
+/* ==========================================================================
+   Actions
+   ========================================================================== */
+
+.ascx-notifications__actions {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+}
+
+
+
+/* ==========================================================================
+   Mark All as Read Button
+   ========================================================================== */
+
+.ascx-notifications__mark-all-as-read-button {
+    color: #555;
+    padding: 0 2px;
+}
+
+.ascx-notifications__new.EMPTY .ascx-notifications__mark-all-as-read-button {
+    display: none;
+}
+
+
+
+/* ==========================================================================
+   Settings Link
+   ========================================================================== */
+
+.ascx-notifications__settings-link {
+    width: 16px;
+    height: 16px;
+    padding: 6px;
+    border-radius: 50%;
+    color: #666;
+}
+
+.ascx-notifications__settings-link:active,
+.ascx-notifications__settings-link:focus {
+    color: #000;
+    background-color: rgba(0, 0, 0, .08);
+}
+
+
+
+/* ==========================================================================
+   Empty Message
+   ========================================================================== */
+
+.ascx-notifications__empty-message {
+    text-align:center;
+    margin: 3em 0 2em;
+    display: none;
+}
+
+.ascx-notifications__new.EMPTY .ascx-notifications__empty-message,
+.ascx-notifications__read.EMPTY .ascx-notifications__empty-message {
+    display: block;
+}
+
+
+
+/* ==========================================================================
+   Item
+   ========================================================================== */
+
+.ascx-notifications__item {
+    display: flex;
+    gap: 12px;
+    padding: 6px;
+    margin: 0 -6px;
+    color: inherit;
+    text-decoration: none;
+    border-radius: 6px;
+    /*transition: background-color .2s;*/
+}
+
+.is-mobile .ascx-notifications__item {
+    padding: 6px 12px; /* container has no horizontal padding on mobile */
+    margin: 0;
+    border-radius: 0;
+    gap: 8px;
+}
+
+.is-desktop .ascx-notifications__item:hover {
+    background-color: rgba(35, 119, 210, .08);
+}
+
+.ascx-notifications__item.EXPANDED,
+.is-desktop .ascx-notifications__item.EXPANDED:hover {
+    background-color: rgba(0, 0, 0, .08);
+}
+
+.ascx-notifications__new.EMPTY .ascx-notifications__item,
+.ascx-notifications__read.EMPTY .ascx-notifications__item {
+    display: none;
+}
+
+
+
+/* ==========================================================================
+   Link
+   ========================================================================== */
+
+.ascx-notifications__link {
+    display: flex;
+    flex: 1;
+    gap: inherit;
+    color: inherit;
+    text-decoration: none;
+    padding: 2px;
+}
+
+.ascx-notifications__link:hover {
+    text-decoration: none;
+}
+
+
+
+/* ==========================================================================
+   Icon
+   ========================================================================== */
+
+.ascx-notifications__icon {
+    position: relative;
+    display: block;
+    border-radius: 50%;
+    width: 40px;
+    height: 40px;
+    background-position: center center;
+    background-size: contain;
+    background-color: #ddd;
+    background-size: 24px 24px;
+    background-repeat: no-repeat;
+    flex-shrink: 0;
+}
+
+.ascx-notifications__item.COMMENT .ascx-notifications__icon {
+    background-color: #34aadc;
+    background-image: url('/Images/svg-icons/NotificationIcons/comment-ffffff.svg');
+    background-image: url('/Images/svg-icons/NotificationIcons/chat-text-fill-ffffff.svg');
+    background-image: url('/Images/svg-icons/NotificationIcons/discussion-fill-ffffff.svg');
+    background-size: 24px 24px;
+}
+
+.ascx-notifications__item.NEWS .ascx-notifications__icon {
+    background-color: #ff2d55;
+    background-image: url('/Images/svg-icons/NotificationIcons/megaphone-fill-ffffff.svg');
+    background-size: 18px 18px;
+}
+
+.ascx-notifications__item.INTERNSHIP .ascx-notifications__icon {
+    background-color: #f77838;
+    background-image: url('/Images/svg-icons/NotificationIcons/briefcase-fill-ffffff.svg');
+    background-size: 18px 18px;
+}
+
+.ascx-notifications__item.SURVEY .ascx-notifications__icon {
+    background-color: #5ca3ea;
+    background-image: url('/Images/svg-icons/clipboard-ffffff.svg');
+    background-image: url('/Images/svg-icons/NotificationIcons/clipboard-fill-ffffff.svg');
+    background-size: 18px 18px;
+}
+
+.ascx-notifications__item.LOGS .ascx-notifications__icon {
+    background-color: #f89f0f;
+    background-image: url('/Images/svg-icons/NotificationIcons/journal-bookmark-fill-ffffff.svg');
+    background-size: 18px 18px;
+}
+
+.ascx-notifications__item.SUBMISSION .ascx-notifications__icon {
+    background-color: #5856d6;
+    background-image: url('/Images/svg-icons/NotificationIcons/inbox-ffffff.svg');
+    background-size: 20px 20px;
+}
+
+.ascx-notifications__item.GRADE .ascx-notifications__icon {
+    background-color: #5856d6;
+    background-image: url('/Images/svg-icons/NotificationIcons/star-fill-ffffff.svg');
+    background-size: 24px 24px;
+}
+
+.ascx-notifications__item.COURSE-ITEM .ascx-notifications__icon {
+    background-color: #5856d6;
+    background-image: url('/Images/svg-icons/NotificationIcons/file-check-fill-ffffff.svg');
+}
+
+.ascx-notifications__item.CHANNEL .ascx-notifications__icon {
+    background-color: #04d30a;
+    background-color: #00a40e;
+    background-image: url('/Images/svg-icons/NotificationIcons/hash-ffffff.svg');
+    background-image: url('/Images/svg-icons/NotificationIcons/hashtag-ffffff.svg');
+    background-size: 20px 20px;
+}
+
+
+
+/* ==========================================================================
+   Content
+   ========================================================================== */
+
+.ascx-notifications__content {
+    flex: 1;
+}
+
+
+
+/* ==========================================================================
+   Description
+   ========================================================================== */
+
+.ascx-notifications__description {
+    font-size: 16px;
+    line-height: 1.3;
+}
+
+
+
+/* ==========================================================================
+   Meta
+   ========================================================================== */
+
+.ascx-notifications__meta {
+    font-size: 13px;
+    color: #777;
+    font-weight: normal;
+    display: flex;
+    gap: 0 4px;
+    flex-wrap: wrap;
+    line-height: 1.2;
+}
+
+
+
+/* ==========================================================================
+   Commented by Users
+   ========================================================================== */
+
+.ascx-notifications__commented-by-users {
+    margin-top: 6px;
+    display: flex;
+    gap: 2px;
+}
+
+
+
+/* ==========================================================================
+   Commented by User
+   ========================================================================== */
+
+.ascx-notifications__commented-by-user {
+    width: 2em;
+    height: 2em;
+    margin-left: -10px;
+}
+
+.ascx-notifications__commented-by-user:first-child {
+    margin-left: 0;
+}
+
+.ascx-notifications__commented-by-user img {
+    width: 100%;
+    height: 100%;
+    border-radius: 50%;
+}
+
+
+
+/* ==========================================================================
+   Commented by Usernames
+   ========================================================================== */
+
+.ascx-notifications__commented-by-usernames {
+    color: #666;
+}
+
+
+
+/* ==========================================================================
+   Actions Menu 
+   ========================================================================== */
+
+.ascx-notifications__actions-menu {
+    position: relative;
+    display: flex;
+    align-items: center;
+}
+
+
+
+/* ==========================================================================
+   Actions Menu Button
+   ========================================================================== */
+
+.ascx-notifications__actions-menu-button {
+    -webkit-appearance: none;
+    -moz-appearance: none;
+    border: none;
+    background: none;
+    padding: 0;
+    cursor: pointer;
+}
+
+.ascx-notifications__actions-menu-button.keyboard-focus:focus {
+    border-radius: 4px;
+    box-shadow: 0 0 2px 2px #0780ff;
+}
+
+
+
+/* ==========================================================================
+   Actions Menu Icon
+   ========================================================================== */
+
+.ascx-notifications__actions-menu-icon {
+    height: 1.5em;
+    padding: 4px;
+    opacity: 0.8;
+    display: block;
+}
+
+
+
+/* ==========================================================================
+   Actions Menu Items
+   ========================================================================== */
+
+.ascx-notification__actions-menu-items {
+    display: none;
+    position: absolute;
+    right: 32px;
+    top: 50%;
+    transform: translateY(-50%);
+    white-space: nowrap;
+    box-sizing: border-box;
+    z-index: 100;
+    font-size: 13px;
+}
+
+.ascx-notifications__item.EXPANDED .ascx-notification__actions-menu-items {
+    display: block;
+}
+
+
+
+/* ==========================================================================
+   Actions Menu Item
+   ========================================================================== */
+
+.ascx-notification__actions-menu-item {
+    font-weight: normal;
+    background: none;
+    color: #000;
+    -webkit-appearance: none;
+    -moz-appearance: none;
+    border: 1px solid #aaa;
+    padding: 8px 14px;
+    border-radius: 24px;
+    cursor: pointer;
+    display: block;
+    background-color: #fff;
+}
+
+.ascx-notification__actions-menu-item:hover {
+    text-decoration:none;
+}
+
+
+
+/* ==========================================================================
+   View More Link
+   ========================================================================== */
+
+.ascx-notifications__view-more-link {
+    display: block;
+    text-align: center;
+    padding: 2em 0 1em 0;
+}
+
+.is-mobile .ascx-notifications__view-more-link {
+    padding: 2em 0;
+}
+
+.ascx-notifications__read.EMPTY .ascx-notifications__view-more-link {
+    display: none;
+}

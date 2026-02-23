@@ -1,0 +1,77 @@
+﻿/* ==========================================================================
+   File Icons
+   ========================================================================== */
+
+html {
+    --file-icons__background-image__default: url('../../Images/svg-icons/FileIcons/file.svg');
+    --file-icons__background-color__default: #888;
+
+    --file-icons-outlined__background-image__default: url('../../Images/svg-icons/FileIcons/file-outlined.svg');
+    --file-icons-outlined__background-color__default: #ffffff;
+    --file-icons-outlined__border-color__default: #888;
+    --file-icons-outlined__border-width__default: 1.4px; 
+    --file-icons-outlined__border-style__default: solid; 
+
+    --file-icons__background-image__text: url('../../Images/svg-icons/FileIcons/text.svg');
+    --file-icons__background-color__text: #000;
+
+    --file-icons-outlined__background-image__text: url('../../Images/svg-icons/FileIcons/text-outlined.svg');
+    --file-icons-outlined__background-color__text: #ffffff;
+    --file-icons-outlined__border-color__text: #000;
+
+    --file-icons__background-image__document: url('../../Images/svg-icons/FileIcons/doc.svg');
+    --file-icons__background-color__document: #2574f5;
+
+    --file-icons-outlined__background-image__document: url('../../Images/svg-icons/FileIcons/doc-outlined.svg');
+    --file-icons-outlined__background-color__document: #ffffff;
+    --file-icons-outlined__border-color__document: #2574f5;
+
+    --file-icons__background-image__spreadsheet: url('../../Images/svg-icons/FileIcons/spreadsheet.svg');
+    --file-icons__background-color__spreadsheet: #179317;
+
+    --file-icons-outlined__background-image__spreadsheet: url('../../Images/svg-icons/FileIcons/spreadsheet-outlined.svg');
+    --file-icons-outlined__background-color__spreadsheet: #ffffff;
+    --file-icons-outlined__border-color__spreadsheet: #179317;
+
+    --file-icons__background-image__presentation: url('../../Images/svg-icons/FileIcons/ppt.svg');
+    --file-icons__background-color__presentation: #f84215;
+
+    --file-icons-outlined__background-image__presentation: url('../../Images/svg-icons/FileIcons/ppt-outlined.svg');
+    --file-icons-outlined__background-color__presentation: #ffffff;
+    --file-icons-outlined__border-color__presentation: #f84215;
+
+    --file-icons__background-image__pdf: url('../../Images/svg-icons/FileIcons/pdf.svg');
+    --file-icons__background-color__pdf: #B00900;
+
+    --file-icons-outlined__background-image__pdf: url('../../Images/svg-icons/FileIcons/pdf-outlined.svg');
+    --file-icons-outlined__background-color__pdf: #ffffff;
+    --file-icons-outlined__border-color__pdf: #B00900;
+
+    --file-icons__background-image__zip: url('../../Images/svg-icons/FileIcons/zip.svg');
+    --file-icons__background-color__zip: #faba10;
+
+    --file-icons-outlined__background-image__zip: url('../../Images/svg-icons/FileIcons/zip-outlined.svg');
+    --file-icons-outlined__background-color__zip: #ffffff;
+    --file-icons-outlined__border-color__zip: #faba10;
+
+    --file-icons__background-image__video: url('../../Images/svg-icons/FileIcons/video.svg');
+    --file-icons__background-color__video: #e31f1a;
+
+    --file-icons-outlined__background-image__video: url('../../Images/svg-icons/FileIcons/video-outlined.svg');
+    --file-icons-outlined__background-color__video: #ffffff;
+    --file-icons-outlined__border-color__video: #e31f1a;
+
+    --file-icons__background-image__audio: url('../../Images/svg-icons/FileIcons/audio.svg');
+    --file-icons__background-color__audio: #13960C;
+
+    --file-icons-outlined__background-image__audio: url('../../Images/svg-icons/FileIcons/audio-outlined.svg');
+    --file-icons-outlined__background-color__audio: #ffffff;
+    --file-icons-outlined__border-color__audio: #13960C;
+
+    --file-icons__background-image__image: url('../../Images/svg-icons/FileIcons/image.svg');
+    --file-icons__background-color__image: #a6339e;
+
+    --file-icons-outlined__background-image__image: url('../../Images/svg-icons/FileIcons/image-outlined.svg');
+    --file-icons-outlined__background-color__image: #ffffff;
+    --file-icons-outlined__border-color__image: #a6339e;
+}

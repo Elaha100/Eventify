@@ -1,0 +1,161 @@
+﻿
+/* ==========================================================================
+   Flash Message
+   ========================================================================== */
+
+.flash-message {
+    position: fixed;
+    width: 100%;
+    display:flex;
+    justify-content:center;
+    top: 10px;
+    left: 0;
+    z-index: 3003;
+    animation-name:flash-message--fade-in-out;
+    animation-duration:4s;
+    animation-delay:.36s; /* Wait for site scrolling to fade in the page */
+    opacity:0;
+    pointer-events:none;
+}
+
+@keyframes flash-message--fade-in-out {
+    0%        { opacity:0; transform:scale(.96); }
+    10%, 86%  { opacity:1; transform:scale(1); }
+    100%      { opacity:0; transform:scale(.94); }
+}
+
+.flash-message.PERMANENT {
+    animation:none;
+}
+
+.flash-message.ERROR {
+    /* Longer duration if error */
+    animation-duration: 6s;
+}
+
+.flash-message.OPEN {
+    animation-duration: .32s;
+    animation-delay: 0;
+    animation-name: flash-message--fade-in;
+    opacity: 1;
+}
+
+@keyframes flash-message--fade-in {
+    0%   { opacity: 0; transform: scale(.96); }
+    100% { opacity: 1; transform: scale(1); }
+}
+
+.flash-message.CLOSE {
+    animation-duration: .1s;
+    animation-delay: 0;
+    animation-name: flash-message--fade-out;
+    opacity: 0;
+}
+
+@keyframes flash-message--fade-out {
+    0%   { opacity: 1; transform: scale(1); }
+    100% { opacity: 0; transform: scale(.94); }
+}
+
+
+
+/* ==========================================================================
+   Panel
+   ========================================================================== */
+
+.flash-message__panel {
+    border-radius: 4px;
+    background-color: #222;
+    position:relative;
+    margin: 0;
+    padding: 10px 18px 12px;
+    color: #fff;
+    box-shadow: 0 1px 8px 0 rgba(0,0,0,.2),
+                0 3px 4px 0 rgba(0,0,0,.14),
+                0 3px 3px -2px rgba(0,0,0,.12);
+    max-width: 320px;
+    text-align: left;
+    pointer-events:all;
+}
+
+.flash-message.PERMANENT .flash-message__panel {
+    padding: 12px 36px 14px;
+}
+
+
+
+/* ==========================================================================
+   Close Button
+   ========================================================================== */
+
+.flash-message__close-button {
+    right: 0;
+    top: 0px;
+    position: absolute;
+    height: 24px;
+    width: 24px;
+    background-image: url('../../Images/ii/android-close_64_0_ffffff_none.png');
+    background-size: 10px 10px;
+    background-repeat:no-repeat;
+    background-position:center center;
+    cursor:pointer;
+}
+
+.is-desktop .flash-message__close-button {
+    opacity:1;
+    transition:opacity .1s;
+}
+
+.is-desktop .flash-message__close-button:hover {
+    opacity: .8;
+}
+
+
+
+/* ==========================================================================
+   Message
+   ========================================================================== */
+
+.flash-message__message {
+    color: #fff;
+    margin: 0;
+    line-height: 24px;
+    font-weight: 600;
+    font-size: 17px;
+    text-align: center;
+}
+
+.is-mobile .flash-message__message {
+    font-size: 16px;
+    line-height:22px;
+}
+
+
+
+/* ==========================================================================
+   Details
+   ========================================================================== */
+
+.flash-message__details {
+    margin: 3px 0 0;
+    font-size: 15px;
+    text-align: center;
+    line-height: 20px;
+}
+
+
+
+/* ==========================================================================
+   Link
+   ========================================================================== */
+
+.flash-message__details a {
+    color:#fff;
+    text-decoration:underline;
+}
+
+.is-desktop .flash-message__details a:hover {
+    color: #ddd;
+    text-decoration: underline;
+}
+

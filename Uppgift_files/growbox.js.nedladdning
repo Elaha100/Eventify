@@ -1,0 +1,148 @@
+﻿'use strict';
+
+(function () {
+
+    // Growbox only works for textareas.
+    // <input type=text> will not work.
+    // 
+    // Usage:
+    // <textarea data-component="growbox"></textarea>
+
+    const cmp = LearnPoint.createComponent('growbox');
+
+    const Selector = {
+        COMPONENT: cmp.componentSelector()
+    }
+
+    const Property = {
+        DISABLE_SCROLL_ADJUSTMENT: 'disable-scroll-adjustment'
+    }
+
+
+
+    /* =====================================================================
+       Event Handlers
+       ===================================================================== */
+
+    document.addEventListener('DOMContentLoaded', function (event) {
+        updateBoxes();
+        Sys.WebForms.PageRequestManager.getInstance().add_endRequest(() => {
+            setTimeout(() => {
+                updateBoxes();
+            }, 10)
+        });
+    });
+
+    // ------------------------------------------------------------------------
+
+    document.addEventListener(LearnPoint.IsMobile.Event.CHANGE, function () {
+        setTimeout(function () {
+            updateBoxes();
+        }, 10);
+    });
+
+    // ------------------------------------------------------------------------
+
+
+    const portrait = window.matchMedia("(orientation: portrait)");
+    portrait.addEventListener('change', function () {
+        setTimeout(function () {
+            updateBoxes();
+        }, 200);
+    });
+
+    // ------------------------------------------------------------------------
+
+    window.addEventListener('afterprint', event => {
+        setTimeout(function () {
+            updateBoxes();
+        }, 10);
+    });
+
+    // ------------------------------------------------------------------------
+
+    document.addEventListener('input', event => grow(event.target));
+
+
+
+    /* =====================================================================
+       Update Boxes
+       ===================================================================== */
+
+    function updateBoxes() {
+        const growboxes = document.querySelectorAll(Selector.COMPONENT);
+
+        growboxes.forEach(growbox => {
+            growbox.style.resize = 'none';
+            growbox.style.overflow = 'hidden';
+            growbox.style.boxSizing = 'border-box';
+            grow(growbox);
+        });
+    }
+    cmp['updateBoxes'] = updateBoxes;
+
+
+
+    /* =====================================================================
+       Grow
+       ===================================================================== */
+
+    function grow(growbox) {
+        if (!growbox.matches(Selector.COMPONENT)) {
+            return;
+        }
+
+        const initialScrollPos = Utils.getScrollPosition();
+        const initialHeight = parseInt(growbox.style.height);
+        const initialRect = growbox.getBoundingClientRect();
+
+        growbox.style.height = '0px';
+
+        const minHeight = growboxMinHeight(growbox);
+        const scrollHeight = growbox.scrollHeight;
+        const newHeight = Math.max(scrollHeight, minHeight);
+
+        growbox.style.height = newHeight + 'px';
+
+        // Add extra scroll if growbox height was increased AND
+        // if growbox is close to the bottom of the page. This is to make
+        // sure the growbox don't grow outside the viewport (for instance
+        // underneath a virtual keyboard).
+
+        const disableScrollAdjustment = LearnPoint.getProperty(growbox, 'growbox', Property.DISABLE_SCROLL_ADJUSTMENT);
+        if (!disableScrollAdjustment) {
+            let extraScroll = 0;
+            if (newHeight > initialHeight) {
+                const isCloseToBottom = (initialRect.bottom / visualViewport.height) > 0.7;
+                if (isCloseToBottom) {
+                    extraScroll = newHeight - initialHeight;
+                }
+            }
+
+            Utils.setScrollPosition(initialScrollPos + extraScroll);
+        }
+    }
+
+
+
+    /* =====================================================================
+       Growbox Min Height
+       ===================================================================== */
+
+    function growboxMinHeight(growbox) {
+        const growboxStyle = getComputedStyle(growbox);
+
+        const lineHeight = parseInt(growboxStyle.getPropertyValue('line-height')) || 20;
+        const paddingTop = parseInt(growboxStyle.getPropertyValue('padding-top')) || 0;
+        const paddingBottom = parseInt(growboxStyle.getPropertyValue('padding-bottom')) || 0;
+        const borderTopWidth = parseInt(growboxStyle.getPropertyValue('border-top-width')) || 0;
+        const borderBottomWidth = parseInt(growboxStyle.getPropertyValue('border-bottom-width')) || 0;
+
+        const rows = growbox.getAttribute('rows') || 1;
+
+        const minHeight = rows * lineHeight + paddingTop + paddingBottom + borderTopWidth + borderBottomWidth;
+
+        return minHeight;
+    }
+
+})();

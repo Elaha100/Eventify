@@ -1,0 +1,994 @@
+﻿
+
+
+/* ==========================================================================
+   Comments Widget
+   ========================================================================== */
+
+.comments-widget {
+    position: relative;
+    border-top: 1px solid #d9d9d9;
+    background-color: transparent;
+}
+
+.print .comments-widget {
+    background-color: #fff;
+}
+
+
+
+/* ==========================================================================
+   Dropzone 
+   ========================================================================== */
+
+.comments-widget::before {
+    visibility: hidden;
+    content: '';
+    position: absolute;
+    z-index: 3;
+    display: block;
+    left: 0;
+    right: 0;
+    top: 0;
+    bottom: 0;
+    background-color: rgba(7, 150, 255, .3);
+    border-left: 3px dashed #0780ff;
+    border-right: 3px dashed #0780ff;
+}
+
+.comments-widget::after {
+    visibility: hidden;
+    content: 'Släpp filen i rutan nedanför';
+    position: absolute;
+    z-index: 4;
+    display: block;
+    left: -6px;
+    right: -6px;
+    top: 0;
+    height: 54px;
+    line-height: 54px;
+    text-align: center;
+    font-size: 1.1em;
+    font-weight: 600;
+    color: #fff;
+    border-radius: 8px;
+    background-color: #0780ff;
+}
+
+.is-mobile .comments-widget::after {
+    left: 0;
+    right: 0;
+    border-radius: 0;
+}
+
+.comments-widget.DROPZONE-ACTIVE::before,
+.comments-widget.DROPZONE-ACTIVE::after {
+    visibility: visible;
+}
+
+.comments-widget.FIXED-HEADER::after {
+    visibility: visible;
+    max-width:1036px;
+    margin: 0 auto;
+    position: fixed;
+    top: 49px;
+}
+
+
+
+/* ==========================================================================
+   Notification
+   ========================================================================== */
+
+.comments-widget__notification {
+    position:absolute;
+    right:17px;
+    top:6px;
+    z-index: 1;
+}
+
+.is-mobile .comments-widget__notification {
+    right:12px;
+    top:6px;
+}
+
+
+
+/* ==========================================================================
+   Notification Icon
+   ========================================================================== */
+
+.comments-widget__notification-icon-enabled,
+.comments-widget__notification-icon-disabled {
+    width: 32px;
+    height: 32px;
+    display: inline-block;
+    background-position: center;
+    background-repeat: no-repeat;
+    background-size: 18px;
+    background-color: transparent;
+    border: 0;
+    cursor: pointer;
+    outline: 0;
+    margin: 0;
+    -webkit-tap-highlight-color: rgba(0,0,0,.1);
+    -moz-appearance: none;
+    -webkit-appearance: none;
+    vertical-align: baseline;
+}
+
+.comments-widget__notification-icon-enabled {
+    background-image: url('../../../../Images/svg-icons/notification-bell-666666.svg'); 
+}
+
+.comments-widget__notification-icon-disabled {
+    background-image: url('../../../../Images/svg-icons/notification-bell-off-aaaaaa.svg');
+}
+
+.comments-widget__notification-icon--animate {
+    animation: comments-widget__notification-icon--fade-in .16s ease;
+}
+
+@keyframes comments-widget__notification-icon--fade-in {
+  0% { 
+      opacity:0; 
+      transform:scale(.6);
+  }
+  80% {
+      transform:scale(1.2);
+  }
+  100% { 
+      opacity:1; 
+      transform:scale(1);
+  }
+}
+
+.comments-widget__notification-icon-enabled.LOADING,
+.comments-widget__notification-icon-disabled.LOADING {
+    animation: comments-widget__notification-icon--fade-out .16s ease;
+    opacity:0;
+    transform:scale(.6);
+}
+
+@keyframes comments-widget__notification-icon--fade-out {
+  0% { 
+      opacity:1; 
+      transform:scale(1);
+  }
+  100% { 
+      opacity:0; 
+      transform:scale(.8);
+  }
+}
+
+.comments-widget__notification-icon:focus {
+    outline:none;
+}
+
+
+
+/* ==========================================================================
+   Container
+   ========================================================================== */
+
+.comments-widget__container {
+    max-width: 768px;
+    margin: 0 auto;
+}
+
+
+
+/* ==========================================================================
+   Content
+   ========================================================================== */
+
+.comments-widget__content {
+    padding: 48px 16px 0;
+    min-height: 218px;
+    box-sizing: border-box;
+    animation: comments-widget__loaded-comments--fade-in .5s ease;
+    display: flex;
+    align-items:flex-end;
+    flex-wrap: wrap;
+    position: relative;
+}
+
+.is-mobile .comments-widget__content {
+    padding: 32px 16px 0;
+}
+
+
+
+/* ==========================================================================
+   Load Comments
+   ========================================================================== */
+
+
+@keyframes comments-widget__loaded-comments--fade-in {
+    0% {
+        opacity: .5;
+    }
+
+    100% {
+        opacity: 1;
+    }
+}
+
+
+
+/* ==========================================================================
+   Comments
+   ========================================================================== */
+
+.comments-widget__comments {
+   width:100%;
+   word-break:break-word;
+   overflow-wrap:break-word;
+}
+
+
+
+/* ==========================================================================
+   Information Panel
+   ========================================================================== */
+
+.comments-widget__information-panel {
+    padding: 16px;
+    margin: 20px auto 60px;
+    text-align: center;
+    color: #444;
+    font-size: 14px;
+    max-width: 320px;
+}
+
+.is-mobile .comments-widget__information-panel {
+    min-width: unset;
+    margin: 16px auto 30px;
+}
+
+.print .comments-widget__information-panel {
+    display: none;
+}
+
+.comments-widget__information-title {
+     font-weight: bold;
+     margin-bottom: 6px;
+     color: #777;
+}
+
+.comments-widget__information-paragraph-icon {
+     width:12px;
+     height:12px;
+     display:inline;
+     line-height:20px;
+}
+
+
+
+/* ==========================================================================
+   New Comments Count
+   ========================================================================== */
+
+.comments-widget__new-comments-count {
+    margin: 0 4px;
+    color: #000;
+    background-color: #CBEEFA;
+    line-height: 20px;
+    font-size: 13px;
+    min-width: 20px;
+    border-radius: 3px;
+    text-align: center;
+    display: inline-block;
+}
+
+
+
+/* ==========================================================================
+   Load Comments Link
+   ========================================================================== */
+
+.comments-widget__load-comments-link {
+      position:absolute;
+      width:100%;
+      left:16px;
+      top: 100px;
+}
+
+.is-mobile .comments-widget__load-comments-link {
+    display:block;
+    text-align:center;
+    padding:16px 0;
+    left: 0;
+    margin-top:-16px; /* offset content padding */
+}
+
+.comments-widget__load-comments-link.LOADING {
+    animation-name: comments-widget__load-comments-link--loading;
+    animation-duration:2s;
+    animation-iteration-count:infinite;
+}
+
+.comments-widget__load-comments-link.LOADING::after {
+    animation-name: comments-widget__load-comments-link--loading--after;
+    animation-duration:20s;
+    animation-iteration-count:infinite;
+    display:inline;
+    content:'';
+}
+
+
+@keyframes comments-widget__load-comments-link--loading--after {
+     0% { content:''; }
+    25% { content:' . '; }
+    50% { content:' . .'; }
+    75% { content:' . . .'; }
+   100% { content:' . . . .'; }    
+}
+
+
+
+/* ==========================================================================
+   Post
+   ========================================================================== */
+
+.comments-widget__post {
+    margin-bottom: 24px;
+    box-sizing: border-box;
+    position: relative;
+    display: flex;
+    gap: 16px;
+}
+
+.is-mobile .comments-widget__post {
+    margin-bottom: 16px;
+    gap: 12px;
+}
+
+
+
+/* ==========================================================================
+   Avatar
+   ========================================================================== */
+
+.comments-widget__avatar {
+    font-size: 16px;
+}
+
+.is-mobile .comments-widget__avatar {
+    font-size: 14px;
+}
+
+
+
+/* ==========================================================================
+   Wrap
+   ========================================================================== */
+
+.comments-widget__wrap { }
+
+
+
+/* ==========================================================================
+   Header
+   ========================================================================== */
+
+.comments-widget__post-header {
+    display: flex;
+    gap: 8px;
+    align-items: baseline;
+}
+
+.is-mobile .comments-widget__post-header {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 0;
+}
+
+
+
+/* ==========================================================================
+   Post Author
+   ========================================================================== */
+
+.comments-widget__post-author {
+    font-weight: 600;
+}
+
+
+
+/* ==========================================================================
+   Date and Actions Wrap
+   ========================================================================== */
+
+.comments-widget__date-and-actions-wrap {
+    display: flex;
+    gap: 8px;
+}
+
+
+
+/* ==========================================================================
+   Post Date
+   ========================================================================== */
+
+.comments-widget__post-date {
+    color: #aaa;
+    font-size: 13px;
+}
+
+
+
+/* ==========================================================================
+   Post Undo Link
+   ========================================================================== */
+
+.comments-widget__post-undo-link {
+    display:none;
+    color:#444;
+    font-size:12px;
+    padding-left:3px;
+}
+
+
+
+/* ==========================================================================
+   Post Deleted Flag
+   ========================================================================== */
+
+ .comments-widget__post-deleted-flag {
+     font-style:italic;
+     display:inline;
+     opacity:0.6;
+ }
+
+
+
+/* ==========================================================================
+   Actions
+   ========================================================================== */
+
+.comments-widget__post-header-actions-wrapper {
+    position:relative;
+    min-height:18px;
+    min-width:60px;
+}
+
+.comments-widget__post-header-actions-panel {
+    position:absolute;
+    top: -4px;
+    color: rgba(0,0,0,.76);
+    cursor: pointer;
+    display:flex;   
+    align-items:center;   
+    border:1px solid transparent;
+    height: 24px;
+    line-height:24px;
+}
+
+.is-desktop .comments-widget__post-header-actions-panel:hover{
+    border-radius:4px;
+    border:1px solid rgba(0,0,0,.1);
+    background-color:rgba(255,255,255,.7);
+}
+
+.comments-widget__post-header-actions-panel--open {
+    border-radius:4px;
+    border:1px solid rgba(0,0,0,.1);
+    background-color:rgba(255,255,255,.7);
+}
+
+.comments-widget__post-header-actions-icon {
+    padding:0 7px;
+    width:26px;
+    opacity: .6;
+    align-self:center;
+    box-sizing:border-box;
+}
+
+.comments-widget__post-header-actions-panel:hover .comments-widget__post-header-actions-icon {
+     opacity:1;
+}
+
+.comments-widget__post-header-actions-panel--open .comments-widget__post-header-actions-icon {
+     border-right: 1px solid rgba(0,0,0,.1);
+     opacity:1;
+}
+
+.comments-widget__post-header-actions-icon:hover {
+    opacity: 1;
+}
+
+.comments-widget__post-header-actions {
+    max-width:0;
+    overflow:hidden;
+    font-size: 11px;
+    white-space:nowrap;    
+    transition:max-width .2s ease;
+    display:flex;
+}
+
+
+.comments-widget__post-header-actions--actions-slide-out {
+    max-width:100px;    
+    transition:max-width .3s ease;
+}
+
+
+.comments-widget__post-header-action-item {
+    cursor:pointer;
+    display: inline-block;
+    box-sizing: border-box;
+    width: 28px;
+    height: 24px;
+    vertical-align: bottom;
+    background-repeat: no-repeat;
+    background-position: center center;
+    background-size: 12px 12px;
+    opacity: .8;
+}
+
+.comments-widget__post-header-action-item:hover {
+    color:#000;
+}
+
+
+.comments-widget__post-header-action-item--delete {  
+    background-image: url('../../../../Images/ma/material-icons_3-0-1_delete_32_0_333333_none.png');
+}
+
+.comments-widget__post-header-action-item--edit {
+    background-image: url('../../../../Images/ma/material-icons_3-0-1_edit_32_0_333333_none.png');
+}
+
+.comments-widget__post-header-action-item--undo {
+    background-image: url('../../../../Images/Icons/undo.png');
+    opacity:0.6;
+}
+
+
+
+/* ==========================================================================
+   Post Just Added
+   ========================================================================== */
+
+.comments-widget__post--just-added {
+    animation: comments-widget__post--fade-in 1s ease;
+}
+
+@keyframes comments-widget__post--fade-in {
+    0% {
+        opacity: 0;
+    }
+
+    100% {
+        opacity: 1;
+    }
+}
+
+
+/* ==========================================================================
+   Show More Comments Panel
+   ========================================================================== */
+
+.comments-widget__show-more-comments-panel {
+    margin:0px 0 12px;
+    height:20px;
+}
+
+.is-mobile .comments-widget__show-more-comments-panel {
+    padding:0 0 0 4px;
+}
+
+
+
+/* ==========================================================================
+   Show More Comments
+   ========================================================================== */
+
+.comments-widget__show-more-comments {      
+    display:inline-block;
+    outline: 0;
+    font-size:12px;
+    text-decoration: none;
+    color: #0094EF;
+    background-color: transparent; 
+}
+
+
+
+/* ==========================================================================
+   Footer
+   ========================================================================== */
+
+.comments-widget__footer {
+    background-color: rgba(0,0,0,.03);
+    background-color: transparent;
+    /*display: flex;*/
+    padding: 10px 8px 32px;
+    border-top: 1px solid #ddd;
+    border: 0;
+    align-items: flex-end;
+}
+
+.is-mobile .comments-widget__footer {
+    display:none;
+}
+
+.is-mobile .comments-widget--open .comments-widget__footer {
+    display:block;
+    padding:8px;
+}
+
+.print .comments-widget__footer,
+.print.is-mobile .comments-widget__footer {
+    display: none;
+}
+
+
+
+/* ==========================================================================
+   Textbox Container
+   ========================================================================== */
+
+.comments-widget__textbox-container {
+    flex: 1;
+    position: relative;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    position: relative;
+}
+
+
+
+/* ==========================================================================
+   Textbox
+   ========================================================================== */
+
+.comments-widget__textbox {
+    display: block;
+    resize: none;
+    margin: 0;
+    padding: 12px 42px 13px 38px;
+    font-size: 15px;
+    font-family: inherit;
+    line-height: 20px;
+    color: inherit;
+    border: 1px solid #aaa;
+    border-radius: 8px;
+    width: 100%;
+    vertical-align: baseline;
+    -webkit-appearance: none;
+    -moz-appearance: none;
+    box-sizing: border-box;
+}
+
+.is-mobile .comments-widget__textbox {
+    border-color: #bbb;
+    padding: 9px 42px 9px 36px;
+    /*border-radius: 18px;*/
+}
+
+
+.comments-widget__textbox::placeholder {
+    color: #aaa;
+}
+
+
+
+/* ==========================================================================
+   New Post Button
+   ========================================================================== */
+
+.comments-widget__new-post-button {
+    appearance: none;
+    background-color: #0780ff;
+    color: #fff;
+    position: absolute;
+    bottom: 3px;
+    right: 5px;
+    width: 28px;
+    height: 28px;
+    cursor: pointer;
+    border-radius: 50%;
+    text-align: center;
+    cursor: pointer;
+    transition: transform 0.1s ease, background-color 0.1s ease, box-shadow 0.1s ease;
+    border: none;
+    margin: 0 2px 5px 10px;
+}
+
+.comments-widget__new-post-button:disabled {
+    opacity: 0;
+    pointer-events: none;
+}
+
+.is-mobile .comments-widget__new-post-button {
+    right: 4px;
+    bottom: 1px;
+}
+
+.comments-widget__new-post-button.keyboard-focus:focus {
+    box-shadow: 0 0 1px 3px rgba(60, 154, 244, .6);
+}
+
+.comments-widget__new-post-button.LOADING,
+.comments-widget__new-post-button.keyboard-focus.LOADING {
+    cursor: default;
+    pointer-events: none;
+    background-color: #ccc;
+    box-shadow: none;
+}
+
+
+
+/* ==========================================================================
+   New Post Button
+   ========================================================================== */
+
+.comments-widget__new-post-button svg {
+    display: block;
+    position: absolute;
+    color: inherit;
+    width: 18px;
+    height: 18px;
+    top: 5px;
+    left: 5px;
+    transition: color .1s;
+    pointer-events: none;
+}
+
+
+
+/* ==========================================================================
+   New Messages
+   ========================================================================== */
+
+.comments-widget__new-messages {
+    display:flex;
+    color:#e00;
+    color:#000;
+    font-size:11px;
+    height:20px;
+    align-items:flex-start;
+    margin:-4px 20px 16px 0;
+}
+
+.print .comments-widget__new-messages {
+    display: none;
+}
+
+.comments-widget__new-messages-text {
+    line-height:20px;
+    padding-right:16px;
+    padding:2px 12px;
+    margin-right:16px;
+    background-color:#CBEEFA;
+    border-radius:8px;
+}
+
+.comments-widget__new-messages::after {
+    flex:1;
+    content:' ';
+    border-bottom:1px solid #f00;
+    border-bottom:1px solid #CBEEFA;
+    border-bottom:1px solid #A4E4F9;
+    height:10px;
+}
+
+
+
+/* ==========================================================================
+   Select File Button
+   ========================================================================== */
+
+.comments-widget__select-file-button {
+    position: absolute;
+  /*  bottom: 7px;*/
+    background-color: transparent;
+    width: 32px;
+    height: 32px;
+    cursor: pointer;
+    appearance: none;
+    border: 0;
+    padding: 0;
+    margin: 4px;
+    border-radius: 6px;
+    transition: background-color .1s;
+}
+
+.comments-widget__select-file-button:active,
+.comments-widget__select-file-button:focus {
+    background-color: rgba(0, 0, 0, .04);
+}
+
+.comments-widget__select-file-button.keyboard-focus {
+    color: #000;
+    box-shadow: 0 0 2px 2px #0780ff;
+}
+
+
+
+/* ==========================================================================
+   Select File Button svg
+   ========================================================================== */
+
+.comments-widget__select-file-button svg {
+    display: block;
+    position: relative;
+    left: 8px;
+    /*top: 1px;*/
+    color: #333;
+    width: 18px;
+    height: 18px;
+    border-radius: 50%;
+    /*  padding: 4px;*/
+}
+
+.is-mobile .comments-widget__select-file-button svg {
+    top: 1px;
+}
+
+
+
+/* ==========================================================================
+   File Input
+   ========================================================================== */
+
+.comments-widget__file-input {
+    display: none;
+}
+
+
+
+/* ==========================================================================
+   Post File Button
+   ========================================================================== */
+
+.comments-widget__post-file-button {
+    display: none;
+}
+
+
+
+/* ==========================================================================
+   Informational Note To User
+   ========================================================================== */
+
+.comments-widget__informational-note-to-user {
+    color: #777;
+    display: block;
+    padding: 6px 0 0 4px;
+    font-weight: 600;
+    font-size: 13px;
+    line-height: 1.2;
+}
+
+
+
+/* ==========================================================================
+   Message Image
+   ========================================================================== */
+
+.comments-widget__message-image {
+    padding: 12px 32px 0 0;
+}
+
+.is-mobile .comments-widget__message-image {
+    padding: 12px 2px 0 0;
+}
+
+
+
+/* ==========================================================================
+   Message Image img
+   ========================================================================== */
+
+.comments-widget__message-image img {
+    max-width: 100%;
+    /* width: auto is required for failed images, but javascript will replace those images with attachments */
+    /*width: auto;*/
+    height: auto;
+    border-radius: 6px;
+    cursor: pointer;
+}
+
+
+
+/* ==========================================================================
+   Message Video
+   ========================================================================== */
+
+.comments-widget__message-video {
+    padding: 12px 32px 0 0;
+}
+
+.is-mobile .comments-widget__message-video {
+    padding: 12px 2px 0 0;
+}
+
+
+
+/* ==========================================================================
+   Message Video video
+   ========================================================================== */
+
+.comments-widget__message-video video {
+    display: block;
+    max-width: 100%;
+    height: 100%;
+    height: auto;
+    border-radius: 6px;
+    background-color: #f5f5f5;
+}
+
+
+
+/* ==========================================================================
+   Message Audio
+   ========================================================================== */
+
+.comments-widget__message-audio {
+    padding: 12px 32px 0 0;
+}
+
+.is-mobile .comments-widget__message-audio {
+    padding: 12px 2px 0 0;
+}
+
+
+
+/* ==========================================================================
+   Message Audio audio
+   ========================================================================== */
+
+.comments-widget__message-audio audio {
+    width: 480px;
+    max-width: 100%;
+}
+
+
+
+/* ==========================================================================
+   Message PDF 
+   ========================================================================== */
+
+.comments-widget__message-pdf {
+    margin: 8px 0 4px -3px;
+    font-size: 14px;
+}
+
+
+
+/* ==========================================================================
+   Message Attachment
+   ========================================================================== */
+
+.comments-widget__message-attachment {
+    margin: 8px 0 4px -3px;
+    font-size: 14px;
+}
+
+
+
+/* ==========================================================================
+   Progress Bar Container
+   ========================================================================== */
+
+.comments-widget__progress-bar-container {
+    margin: 0 1.5em;
+}
+
+
+
+/* ==========================================================================
+   Reload Button
+   ========================================================================== */
+
+.comments-widget__reload-button {
+    position: absolute;
+    opacity: 0;
+    width: 0;
+    height: 0;
+    overflow: hidden;
+}

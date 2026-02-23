@@ -1,0 +1,225 @@
+/* ==========================================================================
+   Content
+   ========================================================================== */
+
+.learning-content-item__content {
+    max-width: 640px; /* Should have same value as rtf-formatted-content */
+    margin: 0 auto 36px;
+    padding: 32px 32px 32px;
+    padding: 24px 24px 0;
+    word-wrap: break-word;
+}
+
+.is-mobile .learning-content-item__content {
+   padding: 24px 16px 0;
+}
+
+
+
+/* ==========================================================================
+   Meta Container
+   ========================================================================== */
+
+.learning-content-item__meta-container {
+    flex: 1;
+    font-size: 13px;
+    line-height: 16px;
+    color: #888;
+    margin:8px 0 8px;
+    text-align:center;
+}
+
+
+
+/* ==========================================================================
+   Content Body Wrapper
+   ========================================================================== */
+
+.learning-content-item__content-body-wrapper {
+
+}
+
+.is-mobile .learning-content-item__content-body {    margin-bottom: 8px;
+}
+
+
+
+/* ==========================================================================
+   Content Separtor
+   ========================================================================== */
+
+.learning-content-item__content-separator {
+    border-top:1px solid #ddd;
+    max-width:640px;
+    margin:0 auto;
+}
+
+.is-mobile .learning-content-item__content-separator {
+    max-width:none;
+}
+
+ .learning-content-item__content-separator.HIDE {
+    display:none;
+}
+
+
+
+/* ==========================================================================
+   Submission
+   ========================================================================== */
+
+.learning-content-item__submission {
+    background-color: #fff;
+}
+
+
+
+/* ==========================================================================
+   Assignment Link
+   ========================================================================== */
+
+.learning-content-item__assignment-link {
+    padding: 0 0 36px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+.print .learning-content-item__assignment-link {
+    display: none;
+}
+
+
+
+/* ==========================================================================
+   Manual Consumption
+   ========================================================================== */
+
+.learning-content-item__manual-consumption {
+    padding: 0 0 32px;
+    padding: 0;
+    margin: 36px 0;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+.print .learning-content-item__manual-consumption {
+    display: none;
+}
+
+
+
+/* ==========================================================================
+   Done Button
+   ========================================================================== */
+
+.learning-content-item__manual-consumption-set-done-button {
+    display: block;
+    color: #fff;
+    box-sizing: border-box;
+    width: 0;
+    height: 32px;
+    line-height: 28px;
+    border-radius: 3px;
+    border-radius: 5px;
+    font-size: 14px;
+    text-align: center;
+    border: 2px solid transparent;
+    background-color: transparent;
+    cursor: pointer;
+    overflow: hidden;
+    opacity: 0;
+    visibility: hidden;
+    pointer-events: none;
+    position: relative;
+    transition: opacity .2s ease;
+    background-image: url('../../../Images/CompletionIcons/feather_1-1-0_circle-check_64_0_008800_none.png');
+    background-size: 32px 32px;
+    background-repeat: no-repeat;
+    background-position: 200px 200px; /* Hide the image */
+}
+
+.learning-content-item__manual-consumption-set-done-button.ENABLED {
+    width: 162px;
+    opacity: 1;
+    visibility: visible;
+    background-color: #0780ff;
+    border-color: #0780ff;
+    pointer-events: auto;
+}
+
+.is-desktop .learning-content-item__manual-consumption-set-done-button.ENABLED:hover {
+    text-decoration: none;
+    opacity: .8;
+}
+
+.learning-content-item__manual-consumption-set-done-button.LOADING {
+    width: 32px;
+    border-color: #ddd;
+    border-radius: 16px;
+    border-left-color: #0780ff;
+    border-bottom-color: #0780ff;
+    background-color: transparent;
+    color: transparent;
+    pointer-events: none;
+    animation: done-button-shrink .3s ease,
+               done-button-spin .7s .3s linear infinite;
+}
+
+.learning-content-item__manual-consumption-set-done-button.DONE {
+    width: 32px;
+    height: 32px;
+    background-color: transparent;
+    color: transparent;
+    pointer-events: none;
+    border: 2px solid transparent;
+    border: 0;
+    opacity: 0;
+    visibility: visible;
+    animation: done-button-done-jump 1.6s ease;
+    background-position: center center; /* Show the image */
+}
+
+@keyframes done-button-shrink {
+    from {
+        width: 162px;
+        height: 32px;
+        border-color: #0780ff;
+        border-radius: 5px;
+    }
+    to {
+        width: 32px;
+        height: 32px;
+        border-radius: 16px;
+    }
+}
+
+@keyframes done-button-spin {
+    from {
+        -webkit-transform: rotate(0deg);
+        transform: rotate(0deg);
+    }
+    to {
+        -webkit-transform: rotate(360deg);
+        transform: rotate(360deg);
+    }
+}
+
+@keyframes done-button-done-jump {
+    0% {
+        opacity: 0;
+        transform: scale(.6) rotate(-360deg);
+    }
+    20% {
+        transform: scale(1.2) rotate(0deg);
+    }
+    40% {
+        opacity: 1;
+        transform: scale(1);
+    }
+    100% {
+        opacity: 0;
+        transform: scale(.94);
+    }
+}

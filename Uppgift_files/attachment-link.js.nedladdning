@@ -1,0 +1,327 @@
+﻿'use strict';
+
+(function () {
+    const cmp = LearnPoint.createComponent('attachment-link');
+
+    const Selector = {
+        PDF_FILE: '.attachment-link.pdf',
+        TRIX_PDF_FILE: '.attachment--pdf a',
+        CLOSE_BUTTON: cmp.elementSelector('modal-close-button'),
+        MODAL: cmp.elementSelector('modal'),
+        OPEN_MODAL: `${cmp.elementSelector("modal")}[open]`,
+        IFRAME: cmp.elementSelector('modal-iframe'),
+        TRIX_EDITOR: 'trix-editor',
+        TRIX_FIGURE: 'figure'
+    }
+
+    const ClassName = {
+        MODAL: 'attachment-link__modal',
+        CLOSE_BUTTON: 'attachment-link__modal-close-button',
+        IFRAME: 'attachment-link__modal-iframe',
+        HEADER: 'attachment-link__modal-header',
+        FILE_NAME: 'attachment-link__modal-file-name',
+        EDIT: 'EDIT'
+    }
+
+
+    const DataElementAttribute = {
+        MODAL: 'attachment-link.modal',
+        CLOSE_BUTTON: 'attachment-link.modal-close-button',
+        IFRAME: 'attachment-link.modal-iframe',
+        FILE_NAME: 'attachment-link.modal-file-name'
+    }
+
+    const Attribute = {
+        SRC: 'src'
+    }
+
+    
+
+    /* =====================================================================
+       Open Attachment Link Modal On Click
+       ===================================================================== */
+
+    document.addEventListener('click', async event => {
+
+        const clickedPdf = event.target.closest(Selector.PDF_FILE) || event.target.closest(Selector.TRIX_PDF_FILE);
+        if (!clickedPdf) {
+            return;
+        }
+
+        if (isMobile) {
+            return;
+        }
+
+        if (!navigator.pdfViewerEnabled) {
+            return;
+        }
+
+        if (insideTrixEditor(clickedPdf)) {
+            return;
+        }
+
+        let { pdfLink, pdfCaption } = getPdfDetails(clickedPdf);
+
+        if (!pdfLink || !pdfCaption) {
+            return;
+        }
+
+        event.preventDefault();
+
+        // Add the Disposition Inline parameter to ensure that the PDF is not downloaded in the browser
+        pdfLink = Utils.urlSetParam(pdfLink, "Disposition", "Inline");
+
+        const [pdfFile, error] = await verifyFileExistence(pdfLink);
+        if (pdfFile === null) {
+            LearnPoint.FlashMessage.Show("Kunde inte öppna filen", error);
+            return;
+        }
+
+        const AttachmentLinkModal = createAttachmentLinkModal(pdfLink, pdfCaption);
+        document.body.appendChild(AttachmentLinkModal);
+        showAttachmentLinkModal(AttachmentLinkModal, pdfLink, pdfCaption);
+
+
+    });
+
+
+
+    /* =====================================================================
+       Get PDF Details
+       ===================================================================== */
+
+    function getPdfDetails(clickedPdf) {
+
+        let pdfLink, pdfCaption;
+
+        try {
+
+            if (clickedPdf.matches(Selector.PDF_FILE)) {
+
+                pdfLink = clickedPdf.href;
+                pdfCaption = clickedPdf.download;
+
+            } else if (clickedPdf.matches(Selector.TRIX_PDF_FILE)) {
+
+                const trixFigureElement = clickedPdf.closest(Selector.TRIX_FIGURE);
+
+                const pdfData = trixFigureElement.getAttribute("data-trix-attachment");
+                const pdfDataObject = JSON.parse(pdfData);
+                pdfLink = Utils.urlRelativeToAbsolute(pdfDataObject.url);
+                pdfCaption = pdfDataObject.filename;
+
+            }
+
+        } catch (error) {
+
+            console.error("Could not get pdf details:", error);
+            pdfLink = null;
+            pdfCaption = null;
+
+        }
+
+        return { pdfLink, pdfCaption };
+    }
+
+
+
+    /* =====================================================================
+       Verify File Existense 
+       ===================================================================== */
+
+    async function verifyFileExistence(pdfLink) {
+        try {
+            const response = await fetch(pdfLink);
+
+            if (!response.ok) {
+                if (response.status === 404) {
+                    const errorMessage = "Filen är inte tillgänglig och kan ha tagits bort";
+                    return [null, errorMessage];
+                } else {
+                    const errorMessage = "Ett fel inträffade";
+                    return [null, errorMessage];
+                }
+            }
+
+            return [pdfLink, null]; 
+
+        } catch (error) {
+            console.error("Could not verify file existence:", error);
+            return [null, "Ett fel inträffade"];
+        }
+    }
+
+
+
+    /* =====================================================================
+       Inside Trix Editor
+       ===================================================================== */
+
+    function insideTrixEditor(clickedPdf) {
+
+        if (clickedPdf.closest(Selector.TRIX_EDITOR)) {
+            return true;
+        }
+
+        return false;
+
+    }
+
+
+
+    /* =====================================================================
+      Create Attachment Link Modal
+      ===================================================================== */
+
+    function createAttachmentLinkModal(pdfLink, pdfCaption) {
+
+        const attachmentLinkModalHtml = `<dialog data-element="attachment-link.modal" class="${ClassName.MODAL}">
+                                  <div data-element="attachment-link.modal-header" class="${ClassName.HEADER}">
+                                      <span data-element="${DataElementAttribute.FILE_NAME}" class="${ClassName.FILE_NAME}">${pdfCaption}</span>
+                                      <button title="Stäng" class="${ClassName.CLOSE_BUTTON}" data-element="${DataElementAttribute.CLOSE_BUTTON}"></button>
+                                  </div>
+                                  <iframe src="${pdfLink}" title="${pdfCaption}" data-element="${DataElementAttribute.IFRAME}" class="${ClassName.IFRAME}"></iframe>
+                              </dialog>`;
+
+        const attachmentLinkModal = Utils.createElementFromHtml(attachmentLinkModalHtml);
+        return attachmentLinkModal;
+
+    }
+
+
+
+    /* =====================================================================
+       Show Attachment Link Modal
+       ===================================================================== */
+
+    function showAttachmentLinkModal(attachmentLinkModal, pdfLink, pdfCaption, preventNewHistoryState = false) {
+
+        attachmentLinkModal.showModal();
+        addCancelEventListener(attachmentLinkModal);
+
+        LearnPoint.SiteScrolling.Disable();
+
+        if (preventNewHistoryState) {
+            return;
+        }
+
+        // Push a new history state, so that the browser back button only closes the modal
+        history.pushState({ AttachmentLinkModalOpen: true, pdfLink: pdfLink, pdfCaption: pdfCaption }, null, "#modal");
+
+    }
+
+
+
+    /* =====================================================================
+       Close Attachment Link Modal On Button Click
+       ===================================================================== */
+
+    document.addEventListener('click', event => {
+
+        const closeButton = event.target.closest(Selector.CLOSE_BUTTON);
+
+        if (!closeButton) {
+            return;
+        }
+
+        closeAttachmentLinkModal();
+
+    });
+
+
+
+    /* =====================================================================
+       Add Cancel Event Listener 
+       ===================================================================== */
+
+    function addCancelEventListener(attachmentLinkModal) {
+
+        // Add cancel event listener to handle modal close on esc key
+        attachmentLinkModal.addEventListener('cancel', event => {
+            event.preventDefault();
+            closeAttachmentLinkModal();
+        });
+
+    }
+
+
+
+    /* =====================================================================
+       Close Attachment Link Modal On Back Button Click / Popstate
+       ===================================================================== */
+
+    window.addEventListener('popstate', async event => {
+
+        // The popstate event happens when the user navigates through their history,
+        // for example if they click on the back or forward button in the browser. It also
+        // happens if we use the history.back() or history.forward() method
+
+        const state = event.state;
+
+        // Recreate the Attachment Link Modal if the user clicks the forward button in the browser history, and a Attachment Link Modal was previously opened
+        if (state && state.AttachmentLinkModalOpen) {
+
+            const openAttachmentLinkModal = document.querySelector(Selector.MODAL);
+
+            if (!openAttachmentLinkModal) {
+
+                const [pdfFile, error] = await verifyFileExistence(state.pdfLink);
+                if (pdfFile === null) {
+                    LearnPoint.FlashMessage.Show("Kunde inte öppna filen", error);
+                    const baseUrl = window.location.href.split('#')[0];
+                    history.replaceState(null, null, baseUrl); 
+                    return;
+                }
+
+                const AttachmentLinkModal = createAttachmentLinkModal(pdfFile, state.pdfCaption);
+                document.body.appendChild(AttachmentLinkModal);
+                showAttachmentLinkModal(AttachmentLinkModal, state.pdfLink, state.pdfCaption, true);
+
+            }
+        } else {
+
+            // Prevent calling history.back() inside closeAttachmentLinkModal() when the browser's back button is clicked, since the browser has already handled the back navigation
+            closeAttachmentLinkModal(true);
+
+        }
+
+    });
+
+
+
+    /* =====================================================================
+       Close Attachment Link Modal
+       ===================================================================== */
+
+    function closeAttachmentLinkModal(preventHistoryBack = false) {
+
+        const openAttachmentLinkModal = document.querySelector(Selector.OPEN_MODAL);
+
+        if (!openAttachmentLinkModal) {
+            return;
+        }
+
+        openAttachmentLinkModal.close();
+        openAttachmentLinkModal.remove();
+        LearnPoint.SiteScrolling.Enable();
+
+        if (!history.state) {
+            return;
+        }
+
+        if (!history.state.AttachmentLinkModalOpen) {
+            return;
+        }
+
+        if (preventHistoryBack) {
+            return;
+        }
+
+        // History.back will return to the previous page, which should be the channel page when we have pushed a new state to the stack
+        history.back();
+
+    }
+
+
+
+})();

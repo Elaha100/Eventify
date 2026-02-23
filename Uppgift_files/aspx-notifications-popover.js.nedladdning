@@ -1,0 +1,60 @@
+﻿'use strict';
+
+(function () {
+
+    const cmp = LearnPoint.createComponent('aspx-notifications-popover');
+
+    const Selector = {
+        COMPONENT: cmp.componentSelector(),
+        MARK_NOTIFICATION_AS_NEW: cmp.elementSelector('mark-notification-as-new'),
+        MARK_NOTIFICATION_AS_READ: cmp.elementSelector('mark-notification-as-read'),
+        MARK_ALL_NOTIFICATIONS_AS_READ: cmp.elementSelector('mark-all-notifications-as-read')
+    }
+
+    const Property = {
+        NOTIFICATION_ID: 'notification-id',
+        TIMESTAMP: 'timestamp'
+    }
+
+
+
+    /* =====================================================================
+       Mark notificaiton as read or new
+       ===================================================================== */
+
+    document.addEventListener('click', async event => {
+        if (event.target.closest(Selector.MARK_NOTIFICATION_AS_READ)) {
+            const btnMarkAsRead = event.target.closest(Selector.MARK_NOTIFICATION_AS_READ);
+            const notificationId = cmp.getProperty(btnMarkAsRead, Property.NOTIFICATION_ID);
+
+            console.log("Mark as read clicked. NotificationId:", notificationId);
+
+            Utils.markNotificationAsRead(notificationId);
+
+            return;
+        }
+
+        if (event.target.closest(Selector.MARK_NOTIFICATION_AS_NEW)) {
+            const btnMarkAsRead = event.target.closest(Selector.MARK_NOTIFICATION_AS_NEW);
+            const notificationId = cmp.getProperty(btnMarkAsRead, Property.NOTIFICATION_ID);
+
+            console.log("Mark as new clicked. NotificationId:", notificationId);
+
+            Utils.markNotificationAsNew(notificationId);
+
+            return;
+        }
+
+        if (event.target.closest(Selector.MARK_ALL_NOTIFICATIONS_AS_READ)) {
+            const btnMarkAllAsRead = event.target.closest(Selector.MARK_ALL_NOTIFICATIONS_AS_READ);
+            const timestamp = cmp.getProperty(btnMarkAllAsRead, Property.TIMESTAMP);
+
+            console.log("Mark all as read clicked. Timestamp:", timestamp);
+
+            Utils.markAllNotificationsAsRead(timestamp);
+
+            return;
+        }
+    });
+
+})();

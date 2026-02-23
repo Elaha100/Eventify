@@ -1,0 +1,148 @@
+﻿'use strict';
+
+(function () {
+
+
+    var cmp = LearnPoint.createComponent('flash-message');
+
+
+
+    /* =====================================================================
+       Class Names
+       ===================================================================== */
+
+    var ClassName = {
+        FLASH_MESSAGE: 'flash-message',
+        PANEL: 'flash-message__panel',
+        MESSAGE: 'flash-message__message',
+        DETAILS: 'flash-message__details',
+        PERMANENT: 'PERMANENT',
+        ERROR: 'ERROR',
+        CLOSE_BUTTON: 'flash-message__close-button',
+        CLOSE: 'CLOSE',
+        OPEN: 'OPEN'
+    }
+
+
+
+    /* =====================================================================
+       Show
+       ===================================================================== */
+
+    function Show(message, details, options = { permanent: false, error: false }) {
+
+        if (!message) {
+            return;
+        }
+
+        // Create flash message
+        var flashMessage = document.createElement('div');
+        flashMessage.classList.add(ClassName.FLASH_MESSAGE);
+
+        // Permanent?
+        if (options.permanent) {
+            flashMessage.classList.add(ClassName.PERMANENT);
+        }
+
+        // Error?
+        if (options.error) {
+            flashMessage.classList.add(ClassName.ERROR);
+        }
+
+        // Add panel
+        var flashMessage_Panel = document.createElement('div');
+        flashMessage_Panel.classList.add(ClassName.PANEL);
+        flashMessage.appendChild(flashMessage_Panel);
+
+        // Add close button 
+        if (options.permanent) {
+            var closeButton = document.createElement('div');
+            closeButton.classList.add(ClassName.CLOSE_BUTTON);
+            closeButton.setAttribute('title', 'Stäng');
+            closeButton.addEventListener('click', function () {
+                Close(flashMessage);
+            });
+            flashMessage_Panel.appendChild(closeButton);
+        }
+
+        // Add message
+        var flashMessage_Message = document.createElement('div');
+        flashMessage_Message.classList.add(ClassName.MESSAGE);
+        flashMessage_Message.textContent = message;
+        flashMessage_Panel.appendChild(flashMessage_Message);
+
+        // Add details
+        if (details) {
+            var flashMessage_Details = document.createElement('div');
+            flashMessage_Details.classList.add(ClassName.DETAILS);
+            //flashMessage_Details.textContent = details;
+            flashMessage_Details.innerHTML = details;
+            flashMessage_Panel.appendChild(flashMessage_Details);
+        }
+
+        // Remove when animation is done
+        if (!options.permanent) {
+            flashMessage.addEventListener('animationend', function () {
+                flashMessage.parentNode.removeChild(flashMessage);
+            });
+        }
+
+        // Add to DOM
+        document.body.appendChild(flashMessage);
+
+        // Set open class (only permanent needs this)
+        if (options.permanent) {
+            window.setTimeout(function () {
+                flashMessage.classList.add(ClassName.OPEN);
+            }, 320);
+        }
+    }
+
+    cmp['Show'] = Show;
+
+
+
+    /* =====================================================================
+       IsOpen
+       ===================================================================== */
+
+    function IsOpen() {
+
+        var flashMessageElement = document.querySelector('.' + ClassName.FLASH_MESSAGE);
+        if (flashMessageElement) {
+            return true;
+        }
+
+        return false;
+    }
+
+    cmp['IsOpen'] = IsOpen;
+
+
+
+    /* =====================================================================
+       Close
+       ===================================================================== */
+
+    function Close(flashMessage) {
+
+        var flashMessage = flashMessage || document.querySelector('.' + ClassName.FLASH_MESSAGE);
+
+        if (!flashMessage) {
+            console.error('Could not find flash message, so could not close it.');
+            return;
+        }
+
+        console.debug('Will close ' + Utils.eltos(flashMessage));
+
+        flashMessage.addEventListener('animationend', function () {
+            flashMessage.parentNode.removeChild(flashMessage);
+        });
+
+        flashMessage.classList.add(ClassName.CLOSE);
+    }
+
+    cmp['Close'] = Close;
+
+
+})();

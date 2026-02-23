@@ -1,0 +1,218 @@
+﻿/* ==========================================================================
+   Avatar
+   ========================================================================== */
+
+.avatar {
+    display: block;
+    border-radius: 50%;
+    cursor: pointer;
+    width: 2.5em;
+    height: 2.5em;
+    transition: all .1s;
+}
+
+.avatar.OPEN {
+    background-color: #fff;
+    box-shadow: 0 0 0 2px #fff, 0 0 0 5px #0780ff;
+}
+
+
+
+/* ==========================================================================
+   Profile Card
+   ========================================================================== */
+
+.avatar__profile-card {
+}
+
+
+
+/* ==========================================================================
+   Profile Card Overlay
+   ========================================================================== */
+
+.avatar__profile-card-overlay {
+    position: fixed;
+    z-index: 10000;
+    right: 0;
+    top: 0;
+    bottom: 0;
+    left: 0;
+    background-color: #000;
+    opacity: 0;
+    pointer-events: none;
+    visibility: hidden;
+    transition: all .2s;
+}
+
+.is-mobile .avatar__profile-card.OPEN .avatar__profile-card-overlay {
+    opacity: 0.6;
+    visibility: visible;
+    pointer-events: auto;
+}
+
+
+
+/* ==========================================================================
+   Profile Card Content
+   ========================================================================== */
+
+.avatar__profile-card-content {
+    position: absolute;
+    pointer-events: auto;
+    top: 0;
+    z-index: 10001;
+    width: 264px;
+    box-shadow: 0 10px 20px rgba(0,0,0,.19), 0 6px 6px rgba(0,0,0,.23);
+    background: #fff;
+    background: #0780ff;
+    border-radius: 18px;
+    text-align: center;
+    text-overflow: ellipsis;
+    overflow: hidden;
+    opacity: 0;
+    transform: scale(0.98);
+    transition: opacity .12s, transform .12s; /* don't transition all, more styles set in js */
+}
+
+.is-mobile .avatar__profile-card-content {
+    position: fixed;
+}
+
+.avatar__profile-card.OPEN .avatar__profile-card-content {
+    opacity: 1;
+    transform: none;
+}
+
+
+
+/* ==========================================================================
+   Profile Image
+   ========================================================================== */
+
+.avatar__profile-image {
+    width: 100%;
+    display: block;
+    width: 65%;
+    border-radius: 50%;
+    background-color: #fff;
+    margin: 32px auto 0;
+    box-shadow: 0 0 0 2px #fff;
+}
+
+
+
+/* ==========================================================================
+   Profile Details 
+   ========================================================================== */
+
+.avatar__profile-details {
+    padding: 22px 16px 0;
+    margin: 0 0 18px;
+    word-break: break-all;
+    white-space: normal;
+}
+
+
+
+/* ==========================================================================
+   Profile Name 
+   ========================================================================== */
+
+.avatar__profile-name {
+    font-size: 22px;
+    line-height: 1.2;
+    color: #000;
+    font-weight: bold;
+    display: block;
+    margin: 0 0 6px;
+    color: #fff;
+}
+
+
+
+/* ==========================================================================
+   School Name 
+   ========================================================================== */
+
+.avatar__school-name {
+    padding: 0;
+    font-size: 14px;
+    line-height: 1.2;
+    font-weight: 600;
+    display: block;
+    margin: 4px 0;
+    color: #fff;
+}
+
+
+
+/* ==========================================================================
+   Profile Info 
+   ========================================================================== */
+
+.avatar__profile-info {
+    padding: 0;
+    font-size: 14px;
+    line-height: 1.2;
+    font-weight: 400;
+    display: block;
+    margin: 4px 0;
+    color: #fff;
+}
+
+
+
+/* ==========================================================================
+   Profile And Signout Link 
+   ========================================================================== */
+
+.avatar__profile-link,
+.avatar__signout-link {
+    font-size: 14px;
+    line-height: 1.2;
+    display: block;
+    margin: 14px 0;
+    padding: 0 2px;
+    color: #fff;
+    padding: 10px 2px;
+    background-color: rgba(255,255,255,0.35);
+    border-radius: 8px;
+    transition:background-color .3s;
+}
+
+.avatar__profile-link:hover,
+.avatar__signout-link:hover {
+    text-decoration: none;
+    background-color: rgba(255,255,255,0.45);
+}
+
+
+
+/* ==========================================================================
+   Close Button
+   ========================================================================== */
+
+.avatar__profile-card-close-button {
+    position: absolute;
+    right: 8px;
+    top: 8px;
+    cursor: pointer;
+    font-size: 12px;
+    width: 28px;
+    height: 28px;
+    z-index: 100;
+    background-color: #fff;
+    border-radius: 50%;
+    appearance: none;
+    -webkit-appearance: none;
+    border: none;
+    padding: 0;
+    margin: 0;
+    display: block;
+    font: inherit;
+    background-image: url(/Images/ii/android-close_60_0_333333_none.png);
+    background-repeat: no-repeat;
+    background-size: 12px 12px;
+    background-position: center;
+}

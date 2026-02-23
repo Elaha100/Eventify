@@ -1,0 +1,309 @@
+/* ==========================================================================
+   Checkbox
+   ========================================================================== */
+
+.checkbox {
+    display: inline-block;
+    position: relative;
+    line-height: 16px;
+    padding: 7px 0;
+    vertical-align: baseline;
+}
+
+.checkbox,
+.checkbox *,
+.checkbox *::before,
+.checkbox *::after {
+    box-sizing: border-box;
+}
+
+
+
+/* ==========================================================================
+   Block
+   ========================================================================== */
+
+.checkbox.BLOCK {
+    display:block;
+}
+
+
+
+/* ==========================================================================
+   Input
+   ========================================================================== */
+
+.checkbox input[type=checkbox] {
+    position: absolute;
+    opacity: 0;
+    padding: 0;
+    margin: 0;
+    width: 0;
+    height: 0;
+}
+
+
+
+/* ==========================================================================
+   Label - The text
+   ========================================================================== */
+
+.checkbox label {
+    cursor: pointer;
+    display: inline-block;
+    padding-left: 28px;
+}
+
+.checkbox input[type=checkbox]:disabled + label {
+    opacity:.8;
+    cursor: default;
+}
+
+
+
+/* ==========================================================================
+   ::before - The box
+   ========================================================================== */
+
+.checkbox label::before {
+    position: absolute;
+    content: '';
+    left: 0;
+    top:5px;
+    width: 20px;
+    height: 20px;
+    display: block;
+    border: 1px solid #d0d0d0;
+    background-color: #fff;
+    border-radius: 3px;
+    transition-property: border-color, box-shadow;
+    transition-timing-function: linear;
+    transition-duration: .08s;
+}
+
+/* Box when focused */
+.checkbox input[type=checkbox].keyboard-focus:focus + label::before {
+    border-color: #3C9AF4;
+    box-shadow: 0 0 6px rgba(60, 154, 244, .8);
+}
+
+/* Box when checked */
+.checkbox input[type=checkbox]:checked + label::before {
+    border-color: #444;
+}
+
+/* Box when disabled */
+.checkbox input[type=checkbox]:disabled + label::before {
+    border-color: #ccc;
+    background-color: #f0f0f0;
+    box-shadow: none;
+}
+
+
+
+/* ==========================================================================
+   ::after - The Tick Symbol
+   ========================================================================== */
+
+.checkbox label::after {
+    content: "";
+    position: absolute;
+    display: block;
+    top: 8px;
+    left: 7px;
+    opacity: 0;
+    width: 6px;
+    height: 12px;
+    border-style: solid;
+    border-color: #333;
+    border-width: 0 2px 2px 0;
+    transform: rotate(40deg);
+    transition-property: opacity;
+    transition-timing-function: linear;
+    transition-duration: .08s;
+}
+
+/* Tick symbol when checked */
+.checkbox input[type=checkbox]:checked + label::after {
+    opacity: 1;
+}
+
+/* Tick symbol when disabled */
+.checkbox input[type=checkbox]:disabled + label::after {
+    opacity: 0;
+}
+
+/* Tick symbol when disabled and checked */
+.checkbox input[type=checkbox]:disabled:checked + label::after {
+    opacity:.8;
+}
+
+
+
+/* ==========================================================================
+   TINY
+   ========================================================================== */
+
+.checkbox.TINY {
+    font-size:12px;
+    line-height:14px;
+    padding: 5px 0;
+}
+
+.checkbox.TINY label {
+    padding-left: 26px;
+}
+
+.checkbox.TINY label::before {
+    width: 18px;
+    height: 18px;
+    top:3px;
+}
+
+.checkbox.TINY label::after {
+    width: 5px;
+    height: 10px;
+    top: 6px;
+    left: 7px;
+}
+
+
+
+/* ==========================================================================
+   SMALL
+   ========================================================================== */
+
+.checkbox.SMALL {
+    font-size: 13px;
+    line-height: 16px;
+    padding: 6px 0;
+}
+
+.checkbox.SMALL label {
+    padding-left: 26px;
+}
+
+.checkbox.SMALL label::before {
+    width: 18px;
+    height: 18px;
+}
+
+.checkbox.SMALL label::after {
+    width: 5px;
+    height: 10px;
+    top: 8px;
+    left: 7px;
+}
+
+
+
+/* ==========================================================================
+   LARGE
+   ========================================================================== */
+
+.checkbox.LARGE {
+    font-size: 15px;
+    line-height: 18px;
+    padding: 7px 0;
+}
+
+.checkbox.LARGE label {
+    padding-left: 30px;
+}
+
+.checkbox.LARGE label::before {
+    width: 22px;
+    height: 22px;
+}
+
+.checkbox.LARGE label::after {
+    top: 9px;
+    left: 8px;
+}
+
+
+
+/* ==========================================================================
+   BIG
+   ========================================================================== */
+
+.checkbox.BIG {
+    font-size: 16px;
+    line-height: 20px;
+    padding: 8px 0;
+}
+
+.checkbox.BIG label {
+    padding-left: 32px;
+}
+
+.checkbox.BIG label::before {
+    width: 24px;
+    height: 24px;
+    top:6px;
+}
+
+.checkbox.BIG label::after {
+    top: 10px;
+    left: 8px;
+    width: 7px;
+    height: 14px;
+}
+
+
+
+/* ==========================================================================
+   HUGE
+   ========================================================================== */
+
+.checkbox.HUGE {
+    font-size: 18px;
+    line-height: 22px;
+    padding: 10px 0;
+}
+
+.checkbox.HUGE label {
+    padding-left: 34px;
+}
+
+.checkbox.HUGE label::before {
+    width: 26px;
+    height: 26px;
+    top: 8px;
+}
+
+.checkbox.HUGE label::after {
+    top: 13px;
+    left: 10px;
+    width: 7px;
+    height: 14px;
+}
+
+
+
+/* ==========================================================================
+   MASSIVE
+   ========================================================================== */
+
+.checkbox.MASSIVE {
+    font-size: 20px;
+    line-height: 24px;
+    padding: 12px 0;
+}
+
+.checkbox.MASSIVE label {
+    padding-left: 36px;
+}
+
+.checkbox.MASSIVE label::before {
+    width: 28px;
+    height: 28px;
+    top: 10px;
+}
+
+.checkbox.MASSIVE label::after {
+    top: 14px;
+    left: 11px;
+    width: 8px;
+    height: 16px;
+}

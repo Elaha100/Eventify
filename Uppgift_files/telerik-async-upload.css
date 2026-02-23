@@ -1,0 +1,105 @@
+/* ==========================================================================
+   Telerik Async Upload
+   ========================================================================== */
+
+.telerik-async-upload {
+}
+
+
+
+/* ==========================================================================
+   ruButton
+   ========================================================================== */
+
+.telerik-async-upload.RadUpload .ruFileWrap .ruBrowse.ruButton {
+    box-sizing:content-box;
+    min-width:unset;
+    vertical-align:baseline;
+    background-color: #fff;
+    background-image: linear-gradient(rgba(0,0,0,0), rgba(0,0,0,0) 50%, rgba(0,0,0,0.02));
+    border-radius: 3px;
+    color: #111;
+    cursor: pointer;
+    display: inline-block;
+    font-family: inherit;
+    font-size: 14px;
+    line-height: 1.2;
+    height:17px;
+    outline: 0;
+    padding: 6px 14px;
+    margin: 0;
+    text-align: center;
+    text-decoration: none;
+    border:1px solid #d5d5d5;
+    -webkit-tap-highlight-color: rgba(0,0,0,.1);
+}
+
+.telerik-async-upload.PRIMARY.RadUpload .ruFileWrap .ruBrowse.ruButton {
+    color: #fff;
+    background-color: #3C9AF4;
+    background-color: #0780ff;
+    border-color:transparent;
+}
+
+
+
+/* ==========================================================================
+   ruFileInput
+   ========================================================================== */
+
+.telerik-async-upload.RadUpload .ruFileWrap .ruFileInput {
+    cursor: pointer;
+}
+
+
+
+/* ==========================================================================
+   ruButtonHover
+   ========================================================================== */
+
+.telerik-async-upload.RadUpload .ruBrowse.ruButton.ruButtonHover {
+    background-color:#f9f9f9;
+}
+
+
+
+/* ==========================================================================
+   ruButtonHover
+   ========================================================================== */
+
+.telerik-async-upload.RadUpload .ruBrowse.ruButton.ruFocused {
+    box-shadow:none;
+}
+
+
+
+/* ==========================================================================
+   ruFakeInput
+   ========================================================================== */
+
+.telerik-async-upload.RadUpload .ruFileWrap .ruFakeInput {
+    display:none;
+}
+
+
+
+/* ==========================================================================
+   ruFileLI
+   ========================================================================== */
+
+.telerik-async-upload.RadUpload:not(.SHOW-UPLOAD-RESULTS) .ruFileLI {
+    display: none;
+}
+
+
+
+/* ==========================================================================
+   Sizes
+   ========================================================================== */
+
+.telerik-async-upload.RadUpload.SMALL .ruFileWrap .ruBrowse.ruButton {
+    font-size: 13px;
+    line-height: 16px;
+    padding: 5px 13px;
+    height:16px;
+}

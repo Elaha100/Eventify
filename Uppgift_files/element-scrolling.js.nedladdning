@@ -1,0 +1,122 @@
+﻿'use strict';
+
+(function () {
+    
+
+    var cmp = LearnPoint.createComponent('element-scrolling');
+
+
+
+    /* =====================================================================
+	   Scroll Smooth
+	   ===================================================================== */
+
+    function ScrollSmooth(element, numberOfPixels, duration, easing) {
+
+        var ease = easing || Utils.easing.linear;
+
+        var done = false;
+
+        var startTime = null;
+        var endTime = null;
+
+        var startPosition = GetScrollPosition(element);
+        var endPosition = startPosition + numberOfPixels;
+
+        console.debug('SmoothScroll using ' + ease.name + ' from ' + startPosition + 'px to ' + endPosition + 'px in ' + duration + 'ms');
+
+        var step = function (currentTime) {
+
+            // init time
+            if (!startTime) {
+                startTime = currentTime;
+                endTime = startTime + duration;
+            }
+
+            // calculate new position for current time
+            var progress = (currentTime - startTime) / (endTime - startTime);
+            var newPosition = Math.floor(startPosition + ease(progress) * numberOfPixels);
+
+            // If progress exceeds 1,
+            // or if newPosition is "more" than endPosition,
+            // then we consider the animation done
+            if (progress >= 1) {
+
+                newPosition = endPosition;
+                done = true;
+
+            } else if (numberOfPixels > 0 && newPosition >= endPosition) {
+
+                newPosition = endPosition;
+                done = true;
+
+            } else if (numberOfPixels < 0 && newPosition <= endPosition) {
+
+                newPosition = endPosition;
+                done = true;
+            }
+
+            console.debug('SmoothScroll: ' + Math.floor(currentTime - startTime) + 'ms => ' + newPosition + 'px');
+            SetScrollPosition(element, newPosition);
+
+            if (!done) {
+                window.requestAnimationFrame(step);
+            }
+        }
+
+        window.requestAnimationFrame(step);
+    }
+
+    cmp['ScrollSmooth'] = ScrollSmooth;
+
+
+
+    /* =====================================================================
+	   Scroll Smooth To Bottom
+	   ===================================================================== */
+
+    function ScrollSmoothToBottom(element, duration, easing) {
+
+        var numberOfPixels = GetMaxScroll(element) - GetScrollPosition(element);
+        if (numberOfPixels > 0) {
+            ScrollSmooth(element, numberOfPixels, duration, easing);
+        }
+    }
+
+    cmp['ScrollSmoothToBottom'] = ScrollSmoothToBottom;
+
+
+
+    /* =====================================================================
+       Get scroll position 
+       ===================================================================== */
+
+    function GetScrollPosition(element) {
+
+        return Math.floor(element.scrollTop || 0);
+    }
+
+
+
+    /* =====================================================================
+       Get max scroll
+       ===================================================================== */
+
+    function GetMaxScroll(element) {
+
+        return Math.floor(element.scrollHeight - element.clientHeight);
+    }
+
+
+
+    /* =====================================================================
+       Set scroll position 
+       ===================================================================== */
+
+    function SetScrollPosition(element, position) {
+
+        element.scrollTop = Math.floor(position);
+    }
+
+
+})();
